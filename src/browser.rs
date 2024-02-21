@@ -121,6 +121,20 @@ impl Browser {
         Ok(())
     }
 
+    pub async fn refresh(&self) -> WebDriverResult<()> {
+        self.driver.refresh().await?;
+        Ok(())
+    }
+
+    pub async fn screenshot_log(&self) -> WebDriverResult<()> {
+        let b = self.driver.screenshot_as_png()
+            .await?;
+
+        let mut file = tokio::fs::File::create("log.png").await.unwrap();
+        tokio::io::AsyncWriteExt::write_all(&mut file, &b).await.unwrap();
+        Ok(())
+    }
+
     pub async fn get_current_chat(&self) -> WebDriverResult<String> {
         let current_url = self.driver.current_url().await?;
         let id = current_url.path().split('/').last().unwrap();

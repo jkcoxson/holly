@@ -72,6 +72,7 @@ async fn main() {
 
     let mut last_messages = HashMap::new();
     let current_chat = client.get_current_chat().await.unwrap();
+    client.screenshot_log().await.unwrap();
     last_messages.insert(
         current_chat,
         client
@@ -79,7 +80,11 @@ async fn main() {
             .await
             .unwrap()
             .last()
-            .unwrap()
+            .unwrap_or(&ChatMessage {
+                sender: "".to_string(),
+                content: "".to_string(),
+                chat_id: "".to_string(),
+            })
             .to_owned(),
     );
 
@@ -91,8 +96,11 @@ async fn main() {
             .await
             .unwrap()
             .last()
-            .unwrap()
-            .to_owned();
+            .unwrap_or(&ChatMessage {
+                sender: "".to_string(),
+                content: "".to_string(),
+                chat_id: "".to_string(),
+            }).to_owned();
         let current_chat = client.get_current_chat().await.unwrap();
 
         let last_message = last_messages.insert(current_chat.clone(), current_message.clone());
@@ -126,11 +134,14 @@ async fn main() {
 
             // If this is the first time we've accessed this, fill with nonsense
             if !last_messages.contains_key(&chats[0].id.clone()) {
-                last_messages.insert(chats[0].id.clone(), ChatMessage {
-                    content: "nonsense".to_string(),
-                    chat_id: chats[0].id.clone(),
-                    sender: "asdf".to_string()
-                });
+                last_messages.insert(
+                    chats[0].id.clone(),
+                    ChatMessage {
+                        content: "nonsense".to_string(),
+                        chat_id: chats[0].id.clone(),
+                        sender: "asdf".to_string(),
+                    },
+                );
             }
             continue;
         }
