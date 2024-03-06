@@ -128,7 +128,7 @@ async fn main() {
 
         // Possibly send a message
         if let Ok(msg) = rx.try_recv() {
-            println!("Sending message: {:?}\n", msg);
+            println!("Sending message: {:?}", msg);
             client.go_to_chat(&msg.chat_id).await.unwrap();
             client.send_message(&msg.content).await.unwrap();
             continue;

@@ -124,9 +124,14 @@ impl ChatMessage {
 
 impl Debug for ChatMessage {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let msg = if self.content.len() > 49 {
+            self.content[0..50].to_string()
+        } else {
+            self.content.to_string()
+        };
         f.debug_struct("Msg")
             .field("sdr", &self.sender)
-            .field("msg", &&self.content[0..50])
+            .field("msg", &msg)
             .field("id", &self.chat_id)
             .finish()
     }
