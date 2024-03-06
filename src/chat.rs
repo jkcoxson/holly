@@ -1,6 +1,6 @@
 // Jackson Coxson
 
-use std::time::Duration;
+use std::{fmt::{Debug, Formatter}, time::Duration};
 
 use serde::{Deserialize, Serialize};
 use thirtyfour::prelude::*;
@@ -12,7 +12,7 @@ pub struct ChatOption {
     pub unread: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ChatMessage {
     pub sender: String,
     pub content: String,
@@ -119,5 +119,15 @@ impl ChatMessage {
         }
 
         Ok(res)
+    }
+}
+
+impl Debug for ChatMessage {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Msg")
+            .field("sdr", &self.sender)
+            .field("msg", &&self.content[0..50])
+            .field("id", &self.chat_id)
+            .finish()
     }
 }

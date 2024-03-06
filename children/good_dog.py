@@ -18,6 +18,12 @@ def process_json_object(json_data):
             'content': 'no u',
             'sender': 'urmom'
         }
+    if json_data['content'].lower().replace('?', '') == 'who':
+        return {
+            'chat_id': json_data['chat_id'],
+            'content': 'asked.',
+            'sender': 'urmom'
+        }
     return None
 
 def main():

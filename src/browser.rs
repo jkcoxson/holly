@@ -226,6 +226,11 @@ impl Browser {
 
         Ok(())
     }
+
+    pub async fn delete_cookies(&self) -> WebDriverResult<()> {
+        self.driver.delete_all_cookies().await?;
+        Ok(())
+    }
 }
 
 fn launch_driver(path: &str, port: u16) -> Child {

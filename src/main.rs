@@ -18,10 +18,16 @@ async fn main() {
     let client = browser::Browser::new(&config).await.unwrap();
     client.load_cookies().await.unwrap();
     if !client.is_logged_in().await {
-        client
+        if client
             .login(&config.fb_username, &config.fb_password)
-            .await
-            .unwrap()
+            .await.is_err() {
+                client.delete_cookies().await.unwrap();
+                client.login(
+                    &config.fb_username,
+                    &config.fb_password,
+                ).await.unwrap();
+                client.dump_cookies().await.unwrap();
+            }
     }
     client.dump_cookies().await.unwrap();
 
@@ -45,7 +51,7 @@ async fn main() {
 
                 tokio::spawn(async move {
                     loop {
-                        let mut buf = [0; 1024];
+                        let mut buf = [0; 4096];
                         tokio::select! {
                             msg = local_rx.recv() => {
                                 let msg = serde_json::to_string(&msg).unwrap();
@@ -57,6 +63,7 @@ async fn main() {
                                 if let Ok(x) = x {
                                     let buf = &buf[0..x];
                                     if let Ok(msg) = serde_json::from_slice::<ChatMessage>(&buf) {
+                                        println!("Accepted msg: {:?}", msg);
                                         tx.send(msg).await.unwrap();
                                     }
                                 } else {
@@ -121,6 +128,7 @@ async fn main() {
 
         // Possibly send a message
         if let Ok(msg) = rx.try_recv() {
+            println!("Sending message: {:?}\n", msg);
             client.go_to_chat(&msg.chat_id).await.unwrap();
             client.send_message(&msg.content).await.unwrap();
             continue;
@@ -130,7 +138,10 @@ async fn main() {
         let mut chats = client.get_chats().await.unwrap();
         chats.retain(|chat| chat.unread);
         if !chats.is_empty() {
-            chats[0].click().await.unwrap();
+            if chats[0].click().await.is_err() {
+                client.refresh().await.unwrap();
+                continue;
+            }
 
             // If this is the first time we've accessed this, fill with nonsense
             if !last_messages.contains_key(&chats[0].id.clone()) {
