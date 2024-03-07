@@ -124,8 +124,8 @@ impl ChatMessage {
 
 impl Debug for ChatMessage {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let msg = if self.content.len() > 49 {
-            self.content[0..50].to_string()
+        let msg = if self.content.len() > 50 {
+            format!("{}...", self.content[0..50].to_string())
         } else {
             self.content.to_string()
         };
