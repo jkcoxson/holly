@@ -63,6 +63,9 @@ async fn main() {
                             x = stream.read(&mut buf) => {
                                 if let Ok(x) = x {
                                     if let Ok(buf) = String::from_utf8(buf[0..x].to_vec()) {
+                                        if x == 0 {
+                                            break;
+                                        }
                                         // Split the buf into JSON packets
                                         // As we've learned, sometimes nagle's algo will squish them
                                         // together into one packet, so we need to split them up
