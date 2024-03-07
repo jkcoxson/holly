@@ -13,10 +13,14 @@ mod browser;
 mod chat;
 mod config;
 
-async fn entry() -> WebDriverResult<()> {
+async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
     let config = config::Config::load();
     let client = browser::Browser::new(&config).await.unwrap();
-    client.load_cookies().await.unwrap();
+
+    if !clear_cookies {
+        client.load_cookies().await.unwrap();
+    }
+
     if !client.is_logged_in().await
         && client
             .login(&config.fb_username, &config.fb_password)
@@ -248,15 +252,22 @@ async fn main() {
     println!("Starting Holly core...");
 
     let mut last_error = std::time::Instant::now();
+    let mut clear_cookies = false;
+
     loop {
-        if let Err(e) = entry().await {
+        if let Err(e) = entry(clear_cookies).await {
             println!("Holly crashed with {:?}", e);
             if last_error.elapsed().as_secs() > 60 {
                 tokio::time::sleep(std::time::Duration::from_secs(10)).await;
                 println!("Restarting Holly...");
                 last_error = std::time::Instant::now();
+                clear_cookies = false;
             } else {
-                panic!("Holly has run into an unrecoverable state!")
+                if clear_cookies {
+                    panic!("Holly has run into an unrecoverable state!")
+                } else {
+                    clear_cookies = true;
+                }
             }
         }
     }
