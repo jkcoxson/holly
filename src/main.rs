@@ -75,10 +75,10 @@ async fn main() {
                                                     s.to_string()
                                                 } else {
                                                     format!("{s}}}")
-                                                }; 
-                                                if s.starts_with('{') { 
-                                                    s.to_string() 
-                                                } else { 
+                                                };
+                                                if s.starts_with('{') {
+                                                    s.to_string()
+                                                } else {
                                                     format!("{{{s}")
                                                 }
                                             })
@@ -124,6 +124,9 @@ async fn main() {
 
     println!("Startup complete");
     loop {
+        // Decline calls
+        client.decline_call().await.unwrap();
+
         // See if the current chat has different messages than before
         let current_message = client
             .get_messages()

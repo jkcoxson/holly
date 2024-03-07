@@ -106,6 +106,7 @@ impl Browser {
     }
 
     pub async fn go_to_chat(&self, id: &str) -> WebDriverResult<()> {
+        self.decline_call().await.unwrap();
         let chats = self.get_chats().await?;
         match chats.iter().find(|c| c.id == id) {
             Some(chat) => {
@@ -117,6 +118,21 @@ impl Browser {
                     .goto(format!("https://www.messenger.com/t/{}", id))
                     .await?;
             }
+        }
+        Ok(())
+    }
+
+    pub async fn decline_call(&self) -> WebDriverResult<()> {
+        // Get the decline object if it exists
+        // aria-lable = "Decline"
+        let decline = self
+            .driver
+            .find(By::XPath("//div[@aria-label=\"Decline\"]"))
+            .await;
+
+        if let Ok(d) = decline {
+            println!("Declining call");
+            d.click().await?;
         }
         Ok(())
     }
@@ -147,11 +163,13 @@ impl Browser {
     }
 
     pub async fn send_message(&self, message: &str) -> WebDriverResult<()> {
+        self.decline_call().await.unwrap();
         let chat_bar = self.driver.find(By::XPath("//div[contains(@class, 'xzsf02u x1a2a7pz x1n2onr6 x14wi4xw x1iyjqo2 x1gh3ibb xisnujt xeuugli x1odjw0f notranslate')]")).await?;
         chat_bar.click().await?;
 
         let mut rand_gen = rand::thread_rng();
         for c in message.chars() {
+            self.decline_call().await.unwrap();
             let x = rand_gen.gen_range(1..=30);
             if x == 7 {
                 for asdf in "asdf".chars() {
