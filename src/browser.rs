@@ -127,11 +127,12 @@ impl Browser {
     }
 
     pub async fn screenshot_log(&self) -> WebDriverResult<()> {
-        let b = self.driver.screenshot_as_png()
-            .await?;
+        let b = self.driver.screenshot_as_png().await?;
 
         let mut file = tokio::fs::File::create("log.png").await.unwrap();
-        tokio::io::AsyncWriteExt::write_all(&mut file, &b).await.unwrap();
+        tokio::io::AsyncWriteExt::write_all(&mut file, &b)
+            .await
+            .unwrap();
         Ok(())
     }
 
@@ -234,7 +235,7 @@ impl Browser {
 }
 
 fn launch_driver(path: &str, port: u16) -> Child {
-    Command::new(format!("{}", path))
+    Command::new(path)
         .arg("-p")
         .arg(port.to_string())
         .kill_on_drop(true)

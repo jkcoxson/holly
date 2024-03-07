@@ -1,6 +1,9 @@
 // Jackson Coxson
 
-use std::{fmt::{Debug, Formatter}, time::Duration};
+use std::{
+    fmt::{Debug, Formatter},
+    time::Duration,
+};
 
 use serde::{Deserialize, Serialize};
 use thirtyfour::prelude::*;
@@ -43,17 +46,13 @@ impl ChatOption {
                 .attr("href")
                 .await?
                 .unwrap()
-                .replace('/', "")
-                .replace('t', "");
+                .replace(['/', 't'], "");
 
             // Determine if the unread marker is there
             let unread_marker = chat
                 .find(By::XPath(".//div[@aria-label=\"Mark as read\"]"))
                 .await;
-            let unread = match unread_marker {
-                Ok(_) => true,
-                Err(_) => false,
-            };
+            let unread = unread_marker.is_ok();
 
             // Add the chat option to the vector
             chat_options_vec.push(ChatOption {
@@ -125,7 +124,7 @@ impl ChatMessage {
 impl Debug for ChatMessage {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let msg = if self.content.len() > 50 {
-            format!("{}...", self.content[0..50].to_string())
+            format!("{}...", &self.content[0..50])
         } else {
             self.content.to_string()
         };

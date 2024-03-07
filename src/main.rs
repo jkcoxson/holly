@@ -17,17 +17,18 @@ async fn main() {
     let config = config::Config::load();
     let client = browser::Browser::new(&config).await.unwrap();
     client.load_cookies().await.unwrap();
-    if !client.is_logged_in().await {
-        if client
+    if !client.is_logged_in().await
+        && client
             .login(&config.fb_username, &config.fb_password)
-            .await.is_err() {
-                client.delete_cookies().await.unwrap();
-                client.login(
-                    &config.fb_username,
-                    &config.fb_password,
-                ).await.unwrap();
-                client.dump_cookies().await.unwrap();
-            }
+            .await
+            .is_err()
+    {
+        client.delete_cookies().await.unwrap();
+        client
+            .login(&config.fb_username, &config.fb_password)
+            .await
+            .unwrap();
+        client.dump_cookies().await.unwrap();
     }
     client.dump_cookies().await.unwrap();
 
@@ -61,10 +62,33 @@ async fn main() {
                             }
                             x = stream.read(&mut buf) => {
                                 if let Ok(x) = x {
-                                    let buf = &buf[0..x];
-                                    if let Ok(msg) = serde_json::from_slice::<ChatMessage>(&buf) {
-                                        println!("Accepted msg: {:?}", msg);
-                                        tx.send(msg).await.unwrap();
+                                    if let Ok(buf) = String::from_utf8(buf[0..x].to_vec()) {
+                                        // Split the buf into JSON packets
+                                        // As we've learned, sometimes nagle's algo will squish them
+                                        // together into one packet, so we need to split them up
+                                        let packets = buf.split("}{")
+                                            .map(|s| {
+                                                let s = if s.ends_with('}') {
+                                                    s.to_string()
+                                                } else {
+                                                    format!("{s}}}")
+                                                }; 
+                                                if s.starts_with('{') { 
+                                                    s.to_string() 
+                                                } else { 
+                                                    format!("{{{s}")
+                                                }
+                                            })
+                                            .collect::<Vec<_>>();
+
+                                        for packet in packets {
+                                            if let Ok(msg) = serde_json::from_str::<ChatMessage>(&packet) {
+                                                println!("Accepted msg: {:?}", msg);
+                                                tx.send(msg).await.unwrap();
+                                            } else {
+                                                println!("Failed to parse msg: {:?}", buf);
+                                            }
+                                        }
                                     }
                                 } else {
                                     break;
@@ -107,7 +131,8 @@ async fn main() {
                 sender: "".to_string(),
                 content: "".to_string(),
                 chat_id: "".to_string(),
-            }).to_owned();
+            })
+            .to_owned();
         let current_chat = client.get_current_chat().await.unwrap();
 
         let last_message = last_messages.insert(current_chat.clone(), current_message.clone());
@@ -144,16 +169,13 @@ async fn main() {
             }
 
             // If this is the first time we've accessed this, fill with nonsense
-            if !last_messages.contains_key(&chats[0].id.clone()) {
-                last_messages.insert(
-                    chats[0].id.clone(),
-                    ChatMessage {
-                        content: "nonsense".to_string(),
-                        chat_id: chats[0].id.clone(),
-                        sender: "asdf".to_string(),
-                    },
-                );
-            }
+            last_messages
+                .entry(chats[0].id.clone())
+                .or_insert_with(|| ChatMessage {
+                    content: "nonsense".to_string(),
+                    chat_id: chats[0].id.clone(),
+                    sender: "asdf".to_string(),
+                });
             continue;
         }
 
