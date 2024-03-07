@@ -3,6 +3,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use chat::ChatMessage;
+use thirtyfour::error::WebDriverResult;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     sync::Mutex,
@@ -12,8 +13,7 @@ mod browser;
 mod chat;
 mod config;
 
-#[tokio::main]
-async fn main() {
+async fn entry() -> WebDriverResult<()> {
     let config = config::Config::load();
     let client = browser::Browser::new(&config).await.unwrap();
     client.load_cookies().await.unwrap();
@@ -122,24 +122,46 @@ async fn main() {
             .to_owned(),
     );
 
+    let mut error_count: u8 = 0;
+
     println!("Startup complete");
     loop {
         // Decline calls
-        client.decline_call().await.unwrap();
+        if let Err(e) = client.decline_call().await {
+            println!("Unable to decline call: {:?}", e);
+        }
 
         // See if the current chat has different messages than before
-        let current_message = client
-            .get_messages()
-            .await
-            .unwrap()
-            .last()
-            .unwrap_or(&ChatMessage {
-                sender: "".to_string(),
-                content: "".to_string(),
-                chat_id: "".to_string(),
-            })
-            .to_owned();
-        let current_chat = client.get_current_chat().await.unwrap();
+        let current_message = match client.get_messages().await {
+            Ok(c) => c
+                .last()
+                .unwrap_or(&ChatMessage {
+                    sender: "".to_string(),
+                    content: "".to_string(),
+                    chat_id: "".to_string(),
+                })
+                .to_owned(),
+            Err(e) => {
+                println!("Unable to get messages: {:?}", e);
+                error_count += 1;
+                if error_count > 10 {
+                    return Err(e);
+                }
+                continue;
+            }
+        };
+
+        let current_chat = match client.get_current_chat().await {
+            Ok(c) => c,
+            Err(e) => {
+                println!("Unable to get current chat: {:?}", e);
+                error_count += 1;
+                if error_count > 10 {
+                    return Err(e);
+                }
+                continue;
+            }
+        };
 
         let last_message = last_messages.insert(current_chat.clone(), current_message.clone());
 
@@ -160,17 +182,48 @@ async fn main() {
         // Possibly send a message
         if let Ok(msg) = rx.try_recv() {
             println!("Sending message: {:?}", msg);
-            client.go_to_chat(&msg.chat_id).await.unwrap();
-            client.send_message(&msg.content).await.unwrap();
+            if let Err(e) = client.go_to_chat(&msg.chat_id).await {
+                println!("Unable to go to chat for send: {:?}", e);
+                error_count += 1;
+                if error_count > 10 {
+                    return Err(e);
+                }
+                continue;
+            }
+            if let Err(e) = client.send_message(&msg.content).await {
+                println!("Unable to send message: {:?}", e);
+                error_count += 1;
+                if error_count > 10 {
+                    return Err(e);
+                }
+                continue;
+            }
             continue;
         }
 
         // Check for unread messages
-        let mut chats = client.get_chats().await.unwrap();
+        let mut chats = match client.get_chats().await {
+            Ok(chats) => chats,
+            Err(e) => {
+                println!("Unable to get chats: {:?}", e);
+                error_count += 1;
+                if error_count > 10 {
+                    return Err(e);
+                }
+                continue;
+            }
+        };
         chats.retain(|chat| chat.unread);
         if !chats.is_empty() {
             if chats[0].click().await.is_err() {
-                client.refresh().await.unwrap();
+                if let Err(e) = client.refresh().await {
+                    println!("Unable to refresh, aborting Holly!");
+                    error_count += 1;
+                    if error_count > 10 {
+                        return Err(e);
+                    }
+                    return Err(e);
+                }
                 continue;
             }
 
@@ -187,5 +240,24 @@ async fn main() {
 
         // Until next time *rides motorcycle away*
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    println!("Starting Holly core...");
+
+    let mut last_error = std::time::Instant::now();
+    loop {
+        if let Err(e) = entry().await {
+            println!("Holly crashed with {:?}", e);
+            if last_error.elapsed().as_secs() > 60 {
+                tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+                println!("Restarting Holly...");
+                last_error = std::time::Instant::now();
+            } else {
+                panic!("Holly has run into an unrecoverable state!")
+            }
+        }
     }
 }
