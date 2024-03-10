@@ -258,7 +258,7 @@ async fn main() {
         if let Err(e) = entry(clear_cookies).await {
             println!("Holly crashed with {:?}", e);
             if last_error.elapsed().as_secs() > 60 {
-                tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+                tokio::time::sleep(std::time::Duration::from_secs(30)).await;
                 println!("Restarting Holly...");
                 last_error = std::time::Instant::now();
                 clear_cookies = false;

@@ -3,6 +3,7 @@
 import json
 import socket
 import time
+import random
 
 def process_json_object(json_data):
     """Creates responses based on the message"""
@@ -22,6 +23,13 @@ def process_json_object(json_data):
         return {
             'chat_id': json_data['chat_id'],
             'content': 'asked.',
+            'sender': 'urmom'
+        }
+    if json_data['content'].lower().replace('?', '') == 'holly':
+        responses = ['yes?', 'wut', 'That\'s me!', 'I\'m Holly!', '*jumps up to lick your face*', 'hmmmm?', 'bork', 'Do you have a treat?']
+        return {
+            'chat_id': json_data['chat_id'],
+            'content': random.choice(responses),
             'sender': 'urmom'
         }
     return None
