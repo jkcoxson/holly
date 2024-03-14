@@ -130,6 +130,8 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
 
     println!("Startup complete");
     loop {
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+
         // Decline calls
         if let Err(e) = client.decline_call().await {
             println!("Unable to decline call: {:?}", e);
@@ -243,7 +245,6 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         }
 
         // Until next time *rides motorcycle away*
-        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
     }
 }
 

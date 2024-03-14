@@ -1,4 +1,5 @@
 /target
+__pycache__
 config.toml
 cookies.json
 log.png
