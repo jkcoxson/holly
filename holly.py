@@ -11,6 +11,7 @@ from typing import Union
 DEFAULT_JUNK = [
     'a',
     'an',
+    'are',
     'as',
     'the'
 ]

@@ -4,6 +4,7 @@ import random
 import time
 import ascii_dogs
 import holly
+import thoughts
 
 def process_message(msg: holly.ParsedHollyMessage):
     """Creates responses based on the message"""
@@ -26,19 +27,19 @@ def process_message(msg: holly.ParsedHollyMessage):
         responses = ['yw', 'ofc', 'Yes, now give me a treat', 'Ok, can we go on a walk now?', '*jumps up to lick your face*', 'Anything for my favorite humans', 'bork', 'Just doing my job. Now give me a treat *begging eyes*']
         return random.choice(responses)
 
-    if msg.match("holly shake"):
+    if msg.is_targeted() and msg.match("shake"):
         responses = ['Only if you have a treat', '*raises paw*', '*raises paw, but menacingly*', 'lol', '*shakes aggressively*', '*happily put paw in your hand*']
         return random.choice(responses)
 
-    if msg.match("holly roll over"):
+    if msg.is_targeted() and msg.match("roll over"):
         responses = ['Only if you have a treat', 'weeeeeeeeee', '*bark bark*', 'lol', '*rolls over*', 'I\'m too dizzy']
         return random.choice(responses)
 
-    if msg.match("holly go to bed"):
+    if msg.is_targeted() and msg.match("go to bed"):
         responses = ['Only if you have a treat', 'One step ahead of you', 'zzzzzzzzzzzzzz', 'Don\'t need to ask me twice', 'k bet']
         return random.choice(responses)
 
-    if msg.match("holly sit"):
+    if msg.is_targeted() and msg.match("sit"):
         responses = ['Only if you have a treat', 'lol no', ascii_dogs.SITTING]
         return random.choice(responses)
 
@@ -49,6 +50,9 @@ def process_message(msg: holly.ParsedHollyMessage):
     if msg.match("cat"):
         responses = ['*BARK BARK BARK BARK BARK BARK BARK*', '*bolts away*', 'Ok, and?', 'Nice try, I\'m not running that far.', 'My mortal enemy...', 'I must defend the humans!', ascii_dogs.RUNNING]
         return random.choice(responses)
+
+    if msg.is_targeted() and (msg.match("what you thinking") or msg.match("say something")):
+        return random.choice(thoughts.THOUGHTS)
     return None
 
 def main():
