@@ -90,7 +90,6 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
 
                                         for packet in packets {
                                             if let Ok(msg) = serde_json::from_str::<ChatMessage>(&packet) {
-                                                println!("Accepted msg: {:?}", msg);
                                                 tx.send(msg).await.unwrap();
                                             } else {
                                                 println!("Failed to parse msg: {:?}", buf);
@@ -263,12 +262,10 @@ async fn main() {
                 println!("Restarting Holly...");
                 last_error = std::time::Instant::now();
                 clear_cookies = false;
+            } else if clear_cookies {
+                panic!("Holly has run into an unrecoverable state!")
             } else {
-                if clear_cookies {
-                    panic!("Holly has run into an unrecoverable state!")
-                } else {
-                    clear_cookies = true;
-                }
+                clear_cookies = true;
             }
         }
     }

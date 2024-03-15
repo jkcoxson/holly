@@ -92,20 +92,22 @@ impl ChatMessage {
         for message in messages {
             match message
                 .query(By::XPath(
-                    ".//img[@class='x1rg5ohu x5yr21d xl1xv1r xh8yej3']",
+                    ".//div[@class='html-div xe8uvvx xexx8yu x4uap5 x18d9i69 xkhd6sd x1gslohp x11i5rnm x12nagc x1mh8g0r x1yc453h x126k92a x18lvrbx']",
                 ))
                 .wait(Duration::from_millis(15), Duration::from_millis(5))
                 .first()
                 .await
             {
                 Ok(c) => {
-                    let sender = c.attr("alt").await?.unwrap();
-                    let content = match message
-                    .find(By::XPath(".//div[@class='x1gslohp x11i5rnm x12nagc x1mh8g0r x1yc453h x126k92a x18lvrbx']"))
-                    .await {
-                        Ok(c) => c.text().await?,
-                        Err(_) => continue,
+                    let sender = match message.query(By::XPath(".//img[@class='x1rg5ohu x5yr21d xl1xv1r xh8yej3']"))
+                    .wait(Duration::from_millis(15), Duration::from_millis(5))
+                    .first().await {
+                        Ok(c) => c.attr("alt").await?.unwrap(),
+                        Err(_) => {
+                            continue;
+                        },
                     };
+                    let content = c.text().await?;
 
                     res.push(Self {
                         sender,
@@ -113,7 +115,9 @@ impl ChatMessage {
                         chat_id: chat_id.clone(),
                     });
                 }
-                Err(_) => continue,
+                Err(_) => {
+                    continue;
+                }
             };
         }
 
