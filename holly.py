@@ -13,6 +13,7 @@ DEFAULT_JUNK = [
     'an',
     'are',
     'as',
+    'is',
     'the'
 ]
 

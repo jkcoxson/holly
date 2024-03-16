@@ -16,6 +16,9 @@ def process_message(msg: holly.ParsedHollyMessage):
     if msg.loose_match("bad dog"):
         return "no u"
 
+    if msg.loose_match("can I get amen"):
+        return "amen"
+
     if msg.match("who"):
         return "asked."
 
