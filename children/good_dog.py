@@ -53,6 +53,9 @@ def process_message(msg: holly.ParsedHollyMessage):
 
     if msg.is_targeted() and (msg.match("what you thinking") or msg.match("say something")):
         return random.choice(thoughts.THOUGHTS)
+
+    if msg.is_targeted() and msg.match("speak"):
+        return random.choice(thoughts.SPEAK)
     return None
 
 def main():

@@ -55,7 +55,7 @@ class ParsedHollyMessage:
     def __repr__(self) -> str:
         return self.__str__()
 
-    def match(self, test: Union[str, list[str]], lower=False):
+    def match(self, test: Union[str, list[str]], lower=True):
         """Checks if the message content matches a test string or list of strings.
 
         Args:
@@ -67,7 +67,10 @@ class ParsedHollyMessage:
         """
         c = self.content
         if lower:
-            test = test.lower()
+            if isinstance(test, str):
+                test = test.lower()
+            else:
+                test = [x.lower() for x in test]
             c = [x.lower() for x in c]
 
         if isinstance(test, str):
