@@ -299,6 +299,9 @@ async fn main() {
             } else {
                 clear_cookies = true;
             }
+        } else {
+            clear_cookies = false;
+            info!("Holly is restarting...");
         }
     }
 }
