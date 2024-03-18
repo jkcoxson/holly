@@ -3,7 +3,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use chat::ChatMessage;
-use log::{error, info};
+use log::{error, info, warn};
 use thirtyfour::error::WebDriverResult;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -15,9 +15,6 @@ mod chat;
 mod config;
 
 async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
-    env_logger::init();
-    info!("Logger initialized");
-    
     let config = config::Config::load();
     let client = browser::Browser::new(&config).await.unwrap();
 
@@ -52,7 +49,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
     tokio::spawn(async move {
         loop {
             if let Ok((mut stream, addr)) = listener.accept().await {
-                println!("Accepted connection from {:?}", addr);
+                info!("Accepted connection from {:?}", addr);
 
                 let (local_tx, mut local_rx) = tokio::sync::mpsc::channel::<ChatMessage>(100);
                 let tx = tx.clone();
@@ -96,7 +93,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                                             if let Ok(msg) = serde_json::from_str::<ChatMessage>(&packet) {
                                                 tx.send(msg).await.unwrap();
                                             } else {
-                                                println!("Failed to parse msg: {:?}", buf);
+                                                warn!("Failed to parse msg: {:?}", buf);
                                             }
                                         }
                                     }
@@ -113,7 +110,6 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
 
     let mut last_messages = HashMap::new();
     let current_chat = client.get_current_chat().await.unwrap();
-    client.screenshot_log().await.unwrap();
     last_messages.insert(
         current_chat,
         client
@@ -131,13 +127,13 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
 
     let mut error_count: u8 = 0;
 
-    println!("Startup complete");
+    info!("Startup complete");
     loop {
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
 
         // Decline calls
         if let Err(e) = client.decline_call().await {
-            println!("Unable to decline call: {:?}", e);
+            error!("Unable to decline call: {:?}", e);
         }
 
         // See if the current chat has different messages than before
@@ -151,7 +147,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                 })
                 .to_owned(),
             Err(e) => {
-                println!("Unable to get messages: {:?}", e);
+                error!("Unable to get messages: {:?}", e);
                 error_count += 1;
                 if error_count > 10 {
                     return Err(e);
@@ -163,7 +159,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         let current_chat = match client.get_current_chat().await {
             Ok(c) => c,
             Err(e) => {
-                println!("Unable to get current chat: {:?}", e);
+                error!("Unable to get current chat: {:?}", e);
                 error_count += 1;
                 if error_count > 10 {
                     return Err(e);
@@ -176,7 +172,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
 
         if let Some(last_message) = last_message {
             if last_message != current_message {
-                println!("{}: {}", current_chat, current_message.content);
+                info!("{}: {}", current_chat, current_message.content);
                 // Send to all clients
                 let blocking_message = current_message.clone();
                 let blocking_senders = senders.clone();
@@ -217,9 +213,9 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                     continue;
                 }
                 _ => {
-                    println!("Sending message: {:?}", msg);
+                    info!("Sending message: {:?}", msg);
                     if let Err(e) = client.go_to_chat(&msg.chat_id).await {
-                        println!("Unable to go to chat for send: {:?}", e);
+                        error!("Unable to go to chat for send: {:?}", e);
                         error_count += 1;
                         if error_count > 10 {
                             return Err(e);
@@ -227,7 +223,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                         continue;
                     }
                     if let Err(e) = client.send_message(&msg.content).await {
-                        println!("Unable to send message: {:?}", e);
+                        error!("Unable to send message: {:?}", e);
                         error_count += 1;
                         if error_count > 10 {
                             return Err(e);
@@ -243,7 +239,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         let mut chats = match client.get_chats().await {
             Ok(chats) => chats,
             Err(e) => {
-                println!("Unable to get chats: {:?}", e);
+                error!("Unable to get chats: {:?}", e);
                 error_count += 1;
                 if error_count > 10 {
                     return Err(e);
@@ -255,7 +251,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         if !chats.is_empty() {
             if chats[0].click().await.is_err() {
                 if let Err(e) = client.refresh().await {
-                    println!("Unable to refresh, aborting Holly!");
+                    error!("Unable to refresh, aborting Holly!");
                     error_count += 1;
                     if error_count > 10 {
                         return Err(e);
@@ -284,15 +280,18 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
 async fn main() {
     println!("Starting Holly core...");
 
+    env_logger::init();
+    info!("Logger initialized");
+
     let mut last_error = std::time::Instant::now();
     let mut clear_cookies = false;
 
     loop {
         if let Err(e) = entry(clear_cookies).await {
-            println!("Holly crashed with {:?}", e);
+            error!("Holly crashed with {:?}", e);
             if last_error.elapsed().as_secs() > 60 {
                 tokio::time::sleep(std::time::Duration::from_secs(30)).await;
-                println!("Restarting Holly...");
+                info!("Restarting Holly...");
                 last_error = std::time::Instant::now();
                 clear_cookies = false;
             } else if clear_cookies {

@@ -2,7 +2,7 @@
 
 use std::process::Stdio;
 
-use log::{error, warn};
+use log::{error, info, warn};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use thirtyfour::prelude::*;
@@ -131,7 +131,7 @@ impl Browser {
             .await;
 
         if let Ok(d) = decline {
-            println!("Declining call");
+            info!("Declining call");
             d.click().await?;
         }
         Ok(())
