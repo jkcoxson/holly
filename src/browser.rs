@@ -144,12 +144,67 @@ impl Browser {
 
     pub async fn screenshot_log(&self) -> WebDriverResult<()> {
         let b = self.driver.screenshot_as_png().await?;
+        let timestamp = chrono::offset::Local::now().to_string();
 
-        let mut file = tokio::fs::File::create("log.png").await.unwrap();
-        tokio::io::AsyncWriteExt::write_all(&mut file, &b)
-            .await
-            .unwrap();
-        Ok(())
+        // Create the log folder if not created
+        if let Err(e) = tokio::fs::create_dir_all("logs").await {
+            error!("Could not create logs folder: {:?}", e);
+            return Err(WebDriverError::CustomError(
+                "Could not create logs folder".to_string(),
+            ));
+        }
+
+        match tokio::fs::File::create(format!("logs/{timestamp}-log.png")).await {
+            Ok(mut file) => {
+                if tokio::io::AsyncWriteExt::write_all(&mut file, &b)
+                    .await
+                    .is_err()
+                {
+                    error!("Could not write screenshot data to file");
+                    return Err(WebDriverError::CustomError(
+                        "Could not write screenshot data to file".to_string(),
+                    ));
+                }
+                Ok(())
+            }
+            Err(e) => {
+                error!("Could not create file to save screenshot: {:?}", e);
+                Err(WebDriverError::CustomError(
+                    "Could not create file to save screenshot".to_string(),
+                ))
+            }
+        }
+    }
+
+    pub async fn html_log(&self) -> WebDriverResult<()> {
+        let html = self.driver.source().await?;
+        let timestamp = chrono::offset::Local::now().to_string();
+
+        // Create the log folder if not created
+        if let Err(e) = tokio::fs::create_dir_all("logs").await {
+            error!("Could not create logs folder: {:?}", e);
+            return Err(WebDriverError::CustomError(
+                "Could not create logs folder".to_string(),
+            ));
+        }
+
+        if let Ok(mut file) = tokio::fs::File::create(format!("logs/{timestamp}-log.html")).await {
+            if tokio::io::AsyncWriteExt::write_all(&mut file, html.as_bytes())
+                .await
+                .is_err()
+            {
+                error!("Could not write html data to file");
+                return Err(WebDriverError::CustomError(
+                    "Could not write html data to file".to_string(),
+                ));
+            }
+            Ok(())
+        } else {
+            error!("Could not create file to save html");
+            Err(WebDriverError::CustomError(
+                "Could not create file to save html".to_string(),
+            ))
+        }
     }
 
     pub async fn get_current_chat(&self) -> WebDriverResult<String> {

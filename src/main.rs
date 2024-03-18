@@ -3,6 +3,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use chat::ChatMessage;
+use log::{error, info};
 use thirtyfour::error::WebDriverResult;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -14,6 +15,9 @@ mod chat;
 mod config;
 
 async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
+    env_logger::init();
+    info!("Logger initialized");
+    
     let config = config::Config::load();
     let client = browser::Browser::new(&config).await.unwrap();
 
@@ -186,24 +190,53 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
 
         // Possibly send a message
         if let Ok(msg) = rx.try_recv() {
-            println!("Sending message: {:?}", msg);
-            if let Err(e) = client.go_to_chat(&msg.chat_id).await {
-                println!("Unable to go to chat for send: {:?}", e);
-                error_count += 1;
-                if error_count > 10 {
-                    return Err(e);
+            match msg.sender.as_str() {
+                "<screenshot>" => {
+                    if let Err(e) = client.screenshot_log().await {
+                        error!("Unable to take screenshot!");
+                        error_count += 1;
+                        if error_count > 10 {
+                            return Err(e);
+                        }
+                    }
+                    continue;
                 }
-                continue;
-            }
-            if let Err(e) = client.send_message(&msg.content).await {
-                println!("Unable to send message: {:?}", e);
-                error_count += 1;
-                if error_count > 10 {
-                    return Err(e);
+                "<html>" => {
+                    if let Err(e) = client.html_log().await {
+                        error!("Unable to take html log!");
+                        error_count += 1;
+                        if error_count > 10 {
+                            return Err(e);
+                        }
+                    }
+                    continue;
                 }
-                continue;
+                "<restart>" => return Ok(()),
+                "<refresh>" => {
+                    client.refresh().await?;
+                    continue;
+                }
+                _ => {
+                    println!("Sending message: {:?}", msg);
+                    if let Err(e) = client.go_to_chat(&msg.chat_id).await {
+                        println!("Unable to go to chat for send: {:?}", e);
+                        error_count += 1;
+                        if error_count > 10 {
+                            return Err(e);
+                        }
+                        continue;
+                    }
+                    if let Err(e) = client.send_message(&msg.content).await {
+                        println!("Unable to send message: {:?}", e);
+                        error_count += 1;
+                        if error_count > 10 {
+                            return Err(e);
+                        }
+                        continue;
+                    }
+                    continue;
+                }
             }
-            continue;
         }
 
         // Check for unread messages

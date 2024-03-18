@@ -13,3 +13,5 @@ serde_json = { version = "*" }
 toml = { version = "*" }
 log = { version = "*" }
 rand = { version = "*" }
+chrono = { version = "*" }
+env_logger = { version = "*" }
