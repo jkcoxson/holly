@@ -7,6 +7,7 @@ import json
 import socket
 import re
 from typing import Union
+import itertools
 
 DEFAULT_JUNK = [
     'a',
@@ -161,9 +162,7 @@ class HollyParser:
             content = self.remove_punctuation.sub('', content)
 
         split_content = content.split()
-        for i, word in enumerate(split_content):
-            if word.lower() in self.junk_list:
-                split_content.pop(i)
+        split_content = list(itertools.filterfalse(lambda x: x.lower() in self.junk_list, split_content))
 
         return ParsedHollyMessage(split_content, chat_id, sender, targeted)
 
