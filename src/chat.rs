@@ -50,7 +50,7 @@ impl ChatOption {
 
             // Determine if the unread marker is there
             let unread_marker = chat
-                .find(By::XPath(".//div[@aria-label=\"Mark as read\"]"))
+                .find(By::XPath(".//span[@class=\"x6s0dn4 xzolkzo x12go9s9 x1rnf11y xprq8jg x9f619 x3nfvp2 xl56j7k x107p15e x170jfvy x1fsd2vl\"]"))
                 .await;
             let unread = unread_marker.is_ok();
 
