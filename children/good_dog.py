@@ -16,11 +16,21 @@ def process_message(msg: holly.ParsedHollyMessage):
     if msg.loose_match("bad dog"):
         return "no u"
 
+    if msg.is_targeted() and msg.match("you are dog"):
+        return "good observation"
+
+    if msg.match("ur mom"):
+        return "gottem"
+
     if msg.loose_match("can I get amen"):
         return "amen"
 
     if msg.match("who"):
         return "asked."
+
+    if msg.loose_match("your"):
+        if random.randint(0, 10) == 7:
+            return "*you're"
 
     if msg.match([]) and msg.is_targeted():
         responses = ['yes?', 'wut', 'That\'s me!', 'I\'m Holly!', '*jumps up to lick your face*', 'hmmmm?', 'bork', 'Do you have a treat?']
