@@ -159,6 +159,7 @@ class HollyParser:
             content = content.replace('@' + self.mention_name, '').strip()
 
         if self.remove_punctuation:
+            content = content.replace("'s", "")
             content = self.remove_punctuation.sub('', content)
 
         split_content = content.split()
