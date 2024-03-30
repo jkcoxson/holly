@@ -11,7 +11,6 @@ THOUGHTS = [
     "the human is fast asleep. but i jumped on their bed. and cuddled close. to remind them that i love them. because the nighttime is long. and i’m worried they might forget",
     "occasionally. the freezer will provide crunch water. this is way better than regular water. because of the crunch",
     "gooooob morning. i helped walk the small neighbor human. to the bus at the end of the street. i tried to get on with them. but was quickly denied. they know that with an education. i’d be too powerful",
-    "every time i get brushed. i have to take my collar off. the human always laughs. and says that i’m naked. but joke’s on them. i’m very confident in my body",
     "on our walk today. i tried to say hello to a person passing by. but they backed away. and continued on. without so much as a smile. the human later explained. that not everyone is going to like me. and i need to be okay with that. but here’s the thing.. i’m not okay with that",
     "THE HUMAN JUST GRABBED THEIR KEYS. AND MY LEASH. THEY ARE PUTTING ON. THEIR OUTSIDE FEET. I DO BELIEVE. IT IS ADVENTURE TIME",
     "if you start leaving the house again. who will be around to say. ohhh big stretch. every time i do a stretch",
@@ -63,7 +62,7 @@ THOUGHTS = [
     c. i am soft
     2. i will listen. to your silly human problems
     8. you can pick the snacks
-    a. i love you"""
+    a. i love you""",
     "if i do a big stretch. but nobody is around to say. ohhh big stretch. it was still a big stretch. it counts",
     "gooooob morning. i think. with the right about of peanut butter. today could go well",
     "gooooob morning. it is an excellent day. to accomplish some goals. i do not have any. but you go ahead",
@@ -87,8 +86,7 @@ SPEAK = [
     "Ogni volta che mi sveglio, mi chiedo se questo sia il giorno in cui potrò finalmente portarmi dentro un bastone.",
     "Кээ бир күндөрү адамдар кайгылуу көрүнөт. Алар менин дагы эле бар экенимди унутуп калышты окшойт.",
     "ເຈົ້າມີຊີວິດພຽງແຕ່ຄັ້ງດຽວ",
-    "amicus meus heri relictus femina hominis, nunc multum clamat homo",
-    "Не можам да одлучам кое тениско топче да му го однесам на мојот човек. И двајцата се толку добри.",
+     "Не можам да одлучам кое тениско топче да му го однесам на мојот човек. И двајцата се толку добри.",
     "Зул сарын баяраар шинэ хүзүүвч авсан. Хувцас худалдаж авах нь яагаад ийм удаан үргэлжилдэгийг одоо би ойлгож байна.",
     "Би зорилго тавьж байна: Би зөвхөн илүү нүх ухах төдийгүй илүү сайн нүх ухах болно.",
     "په انګړ کې ټول سوري زما لاسي کار دی. اړتیا نشته چې زما څخه مننه وکړم.",

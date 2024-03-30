@@ -32,6 +32,15 @@ def process_message(msg: holly.ParsedHollyMessage):
         if random.randint(0, 10) == 7:
             return "*you're"
 
+    if msg.match("rock"):
+        return "paper. i win"
+
+    if msg.match("paper"):
+        return "scissors. i win"
+
+    if msg.match("scissors"):
+        return "rock. i win"
+
     if msg.match([]) and msg.is_targeted():
         responses = ['yes?', 'wut', 'That\'s me!', 'I\'m Holly!', '*jumps up to lick your face*', 'hmmmm?', 'bork', 'Do you have a treat?']
         return random.choice(responses)

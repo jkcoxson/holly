@@ -269,6 +269,9 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                     chat_id: chats[0].id.clone(),
                     sender: "asdf".to_string(),
                 });
+
+            // Sleep for a few secs to load new messages that might not have loaded yet
+            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
             continue;
         }
 
@@ -279,6 +282,10 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
 #[tokio::main]
 async fn main() {
     println!("Starting Holly core...");
+
+    if std::env::var("RUST_LOG").is_err() {
+        println!("Don't forget to initialize the logger with the RUST_LOG env var!!");
+    }
 
     env_logger::init();
     info!("Logger initialized");

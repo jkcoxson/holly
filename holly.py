@@ -282,3 +282,19 @@ class HollyClient:
     def close(self):
         """Closes the connection to the server."""
         self.socket.close()
+
+    def screenshot(self):
+        """Command Holly core to take a screenshot"""
+        self.send(HollyMessage("", "", "<screenshot>"))
+
+    def html(self):
+        """Command Holly core to dump the page HTML"""
+        self.send(HollyMessage("", "", "<html>"))
+
+    def restart(self):
+        """Command Holly core to restart"""
+        self.send(HollyMessage("", "", "<restart>"))
+
+    def refresh(self):
+        """Command Holly core to refresh the page"""
+        self.send(HollyMessage("", "", "<refresh>"))
