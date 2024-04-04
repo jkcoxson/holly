@@ -8,6 +8,8 @@ use std::{
 use serde::{Deserialize, Serialize};
 use thirtyfour::prelude::*;
 
+/// A chat found on the sidebar. 
+/// Includes whether or not the chat is unread.
 #[derive(Debug)]
 pub struct ChatOption {
     pub id: String,
@@ -15,6 +17,7 @@ pub struct ChatOption {
     pub unread: bool,
 }
 
+/// A message found in a chat.
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ChatMessage {
     pub sender: String,
@@ -23,6 +26,7 @@ pub struct ChatMessage {
 }
 
 impl ChatOption {
+    /// Gets all the chats in the sidebar
     pub async fn get_all(driver: &WebDriver) -> WebDriverResult<Vec<ChatOption>> {
         // Get the chats object
         let chats_object = driver
@@ -64,6 +68,7 @@ impl ChatOption {
         Ok(chat_options_vec)
     }
 
+    /// Clicks on the sidebar, thereby navigating to the chat
     pub async fn click(&self) -> WebDriverResult<()> {
         self.element.scroll_into_view().await?;
         self.element.click().await?;
@@ -73,6 +78,7 @@ impl ChatOption {
 }
 
 impl ChatMessage {
+    /// Gets all the chat messages in the current chat
     pub async fn get(driver: &WebDriver, chat_id: String) -> WebDriverResult<Vec<Self>> {
         // Get the chat container
         let chat_container = driver

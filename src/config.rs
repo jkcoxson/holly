@@ -16,6 +16,7 @@ port = 8011
 host = "127.0.0.1"
 "#;
 
+/// Holly configuration file
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub fb_username: String,
@@ -38,6 +39,7 @@ pub struct Tcp {
 }
 
 impl Config {
+    /// Loads the config file
     pub fn load() -> Self {
         // Determine if HOLLY_CONFIG_PATH is set
         let path = std::env::var("HOLLY_CONFIG_PATH").unwrap_or("config.toml".to_string());

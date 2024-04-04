@@ -101,10 +101,14 @@ impl Browser {
                 .is_ok()
     }
 
+    /// Gets all the chats on the side bar. Includes whether or not they are unread.
     pub async fn get_chats(&self) -> WebDriverResult<Vec<crate::chat::ChatOption>> {
         crate::chat::ChatOption::get_all(&self.driver).await
     }
 
+    /// Navigates the browser to the chat with the given id.
+    /// Attempts to find it on the side bar to click that object.
+    /// If it's not found, it will just navigate via URL.
     pub async fn go_to_chat(&self, id: &str) -> WebDriverResult<()> {
         self.decline_call().await.unwrap();
         let chats = self.get_chats().await?;
@@ -122,6 +126,7 @@ impl Browser {
         Ok(())
     }
 
+    /// Declines a Messenger call on the browser
     pub async fn decline_call(&self) -> WebDriverResult<()> {
         // Get the decline object if it exists
         // aria-lable = "Decline"
@@ -137,11 +142,13 @@ impl Browser {
         Ok(())
     }
 
+    /// Refreshes the tab
     pub async fn refresh(&self) -> WebDriverResult<()> {
         self.driver.refresh().await?;
         Ok(())
     }
 
+    /// Takes a screenshot and saves it to logs/timestamp.png
     pub async fn screenshot_log(&self) -> WebDriverResult<()> {
         let b = self.driver.screenshot_as_png().await?;
         let timestamp = chrono::offset::Local::now().to_string();
@@ -176,6 +183,7 @@ impl Browser {
         }
     }
 
+    /// Takes a snapshot of the page HTML and saves to to logs/timestamp.html
     pub async fn html_log(&self) -> WebDriverResult<()> {
         let html = self.driver.source().await?;
         let timestamp = chrono::offset::Local::now().to_string();
@@ -207,16 +215,19 @@ impl Browser {
         }
     }
 
+    /// Gets the ID of the current chat
     pub async fn get_current_chat(&self) -> WebDriverResult<String> {
         let current_url = self.driver.current_url().await?;
         let id = current_url.path().split('/').last().unwrap();
         Ok(id.to_string())
     }
 
+    /// Gets the list of all the messages in the current chat
     pub async fn get_messages(&self) -> WebDriverResult<Vec<crate::chat::ChatMessage>> {
         crate::chat::ChatMessage::get(&self.driver, self.get_current_chat().await?).await
     }
 
+    /// Sends a message to the current chat
     pub async fn send_message(&self, message: &str) -> WebDriverResult<()> {
         self.decline_call().await.unwrap();
         let chat_bar = self.driver.find(By::XPath("//div[contains(@class, 'xzsf02u x1a2a7pz x1n2onr6 x14wi4xw x1iyjqo2 x1gh3ibb xisnujt xeuugli x1odjw0f notranslate')]")).await?;
@@ -253,6 +264,7 @@ impl Browser {
         Ok(())
     }
 
+    /// Dumps the cookies to cookies.json so we don't have to login every time
     pub async fn dump_cookies(&self) -> WebDriverResult<()> {
         let cookies = self.driver.get_all_cookies().await?;
         let mut file = match std::fs::File::create("cookies.json") {
@@ -276,6 +288,7 @@ impl Browser {
         Ok(())
     }
 
+    /// Loads the cookies from cookies.json so we don't have to login every time
     pub async fn load_cookies(&self) -> WebDriverResult<()> {
         let mut file = match std::fs::File::open("cookies.json") {
             Ok(file) => file,
@@ -301,6 +314,7 @@ impl Browser {
         Ok(())
     }
 
+    /// Wipes the cookies
     pub async fn delete_cookies(&self) -> WebDriverResult<()> {
         self.driver.delete_all_cookies().await?;
         Ok(())
