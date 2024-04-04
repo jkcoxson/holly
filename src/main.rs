@@ -108,7 +108,6 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         }
     });
 
-    let mut new_chat = false;
     let mut last_messages = HashMap::new();
     let current_chat = client.get_current_chat().await.unwrap();
     last_messages.insert(
@@ -271,7 +270,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                     sender: "asdf".to_string(),
                 });
 
-            new_chat = true;
+            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
             continue;
         }
 
