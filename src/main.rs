@@ -28,6 +28,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
             .await
             .is_err()
     {
+        warn!("Cookies are invalid, logging in again");
         client.delete_cookies().await.unwrap();
         client
             .login(&config.fb_username, &config.fb_password)
