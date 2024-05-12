@@ -91,7 +91,8 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                                             .collect::<Vec<_>>();
 
                                         for packet in packets {
-                                            if let Ok(msg) = serde_json::from_str::<ChatMessage>(&packet) {
+                                            if let Ok(mut msg) = serde_json::from_str::<ChatMessage>(&packet) {
+                                                msg.clean();
                                                 tx.send(msg).await.unwrap();
                                             } else {
                                                 warn!("Failed to parse msg: {:?}", buf);

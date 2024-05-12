@@ -7,8 +7,9 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 use thirtyfour::prelude::*;
+use unidecode;
 
-/// A chat found on the sidebar. 
+/// A chat found on the sidebar.
 /// Includes whether or not the chat is unread.
 #[derive(Debug)]
 pub struct ChatOption {
@@ -128,6 +129,11 @@ impl ChatMessage {
         }
 
         Ok(res)
+    }
+
+    /// Removes special characters that can't be sent into Messenger
+    pub fn clean(&mut self) {
+        self.content = unidecode::unidecode(&self.content);
     }
 }
 

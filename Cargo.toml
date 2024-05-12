@@ -15,3 +15,4 @@ log = { version = "*" }
 rand = { version = "*" }
 chrono = { version = "*" }
 env_logger = { version = "*" }
+unidecode = { version = "0.3.0" }
