@@ -230,7 +230,10 @@ impl Browser {
     /// Sends a message to the current chat
     pub async fn send_message(&self, message: &str) -> WebDriverResult<()> {
         self.decline_call().await.unwrap();
-        let chat_bar = self.driver.find(By::XPath("//div[contains(@class, 'xzsf02u x1a2a7pz x1n2onr6 x14wi4xw x1iyjqo2 x1gh3ibb xisnujt xeuugli x1odjw0f notranslate')]")).await?;
+        let chat_bar = self
+            .driver
+            .find(By::XPath("//div[@role='textbox']"))
+            .await?;
         chat_bar.click().await?;
 
         let mut rand_gen = rand::thread_rng();
@@ -260,6 +263,12 @@ impl Browser {
             .await;
         }
         chat_bar.send_keys(Key::Enter + "").await?;
+
+        let send_button = self
+            .driver
+            .find(By::XPath("//div[@aria-label='Press enter to send']"))
+            .await?;
+        send_button.click().await?;
 
         Ok(())
     }
