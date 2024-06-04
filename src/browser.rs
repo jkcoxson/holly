@@ -230,10 +230,25 @@ impl Browser {
     /// Sends a message to the current chat
     pub async fn send_message(&self, message: &str) -> WebDriverResult<()> {
         self.decline_call().await.unwrap();
-        let chat_bar = self
+
+        let chat_bar = match self
             .driver
-            .find(By::XPath("//div[@role='textbox']"))
-            .await?;
+            .query(By::XPath("//div[@role='textbox']"))
+            .wait(
+                std::time::Duration::from_secs(5),
+                std::time::Duration::from_millis(100),
+            )
+            .first()
+            .await
+        {
+            Ok(c) => c,
+            Err(_) => {
+                warn!("Unable to get sender box by textbox role");
+                self.driver
+                    .find(By::XPath("//div[@aria-label='Message']"))
+                    .await?
+            }
+        };
         chat_bar.click().await?;
 
         let mut rand_gen = rand::thread_rng();
@@ -264,11 +279,13 @@ impl Browser {
         }
         chat_bar.send_keys(Key::Enter + "").await?;
 
-        let send_button = self
+        if let Ok(send_button) = self
             .driver
             .find(By::XPath("//div[@aria-label='Press enter to send']"))
-            .await?;
-        send_button.click().await?;
+            .await
+        {
+            let _ = send_button.click().await;
+        }
 
         Ok(())
     }
