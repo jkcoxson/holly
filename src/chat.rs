@@ -91,9 +91,17 @@ impl ChatMessage {
             .await?;
 
         // Get all the messages in the chat container
-        let messages = chat_container
-            .find_all(By::XPath(".//div[@class='x78zum5 xdt5ytf']"))
-            .await?;
+        let mut tries = 0;
+        let messages = loop {
+            let messages = chat_container
+                .find_all(By::XPath(".//div[@class='x78zum5 xdt5ytf']"))
+                .await?;
+            if messages.len() > 13 || tries > 5 {
+                break messages;
+            }
+            tries += 1;
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await
+        };
 
         let mut res = Vec::new();
         for message in messages {
