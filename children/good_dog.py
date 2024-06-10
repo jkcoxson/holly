@@ -29,10 +29,6 @@ def process_message(msg: holly.ParsedHollyMessage):
     if msg.match("who"):
         return "asked."
 
-    if msg.loose_match("your"):
-        if random.randint(0, 25) == 7:
-            return "*you're"
-
     if msg.match("rock"):
         return "paper. i win"
 
