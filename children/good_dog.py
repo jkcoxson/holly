@@ -82,6 +82,15 @@ def process_message(msg: holly.ParsedHollyMessage):
 
     if msg.is_targeted() and msg.match("speak"):
         return random.choice(thoughts.SPEAK)
+    
+    if msg.is_targeted() and msg.match("do you want the ball"):
+        responses = ['*RUFF, RUFF*', 'I\'m really good at fetching fetching is my favorite', 'Yes, Yes gimme the ball']
+        return random.choice(responses)
+    
+    if msg.is_targeted() and msg.match("what do you like to do"):
+        responses= ['I wuv helping my hoomans, especially fetching, fetching is my favorite.', 'Take naps after fetching for referrals','Helping my hoomans rember to contact their refferals!']
+        return randon.choice(responses)
+    
     return None
 
 
