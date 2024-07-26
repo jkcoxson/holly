@@ -7,7 +7,6 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 use thirtyfour::prelude::*;
-use unidecode;
 
 /// A chat found on the sidebar.
 /// Includes whether or not the chat is unread.
@@ -80,7 +79,11 @@ impl ChatOption {
 
 impl ChatMessage {
     /// Gets all the chat messages in the current chat
-    pub async fn get(driver: &WebDriver, chat_id: String) -> WebDriverResult<Vec<Self>> {
+    pub async fn get(
+        driver: &WebDriver,
+        chat_id: String,
+        last: bool,
+    ) -> WebDriverResult<Vec<Self>> {
         // Get the chat container
         let chat_container = driver
             .query(By::XPath(
@@ -97,6 +100,9 @@ impl ChatMessage {
                 .find_all(By::XPath(".//div[@class='x78zum5 xdt5ytf']"))
                 .await?;
             if messages.len() > 13 || tries > 5 {
+                if last && !messages.is_empty() {
+                    break vec![messages.last().unwrap().to_owned()];
+                }
                 break messages;
             }
             tries += 1;

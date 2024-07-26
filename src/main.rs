@@ -115,7 +115,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
     last_messages.insert(
         current_chat,
         client
-            .get_messages()
+            .get_messages(true)
             .await
             .unwrap()
             .last()
@@ -139,7 +139,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         }
 
         // See if the current chat has different messages than before
-        let current_message = match client.get_messages().await {
+        let current_message = match client.get_messages(true).await {
             Ok(c) => c
                 .last()
                 .unwrap_or(&ChatMessage {

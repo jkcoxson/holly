@@ -223,8 +223,8 @@ impl Browser {
     }
 
     /// Gets the list of all the messages in the current chat
-    pub async fn get_messages(&self) -> WebDriverResult<Vec<crate::chat::ChatMessage>> {
-        crate::chat::ChatMessage::get(&self.driver, self.get_current_chat().await?).await
+    pub async fn get_messages(&self, last: bool) -> WebDriverResult<Vec<crate::chat::ChatMessage>> {
+        crate::chat::ChatMessage::get(&self.driver, self.get_current_chat().await?, last).await
     }
 
     /// Sends a message to the current chat
