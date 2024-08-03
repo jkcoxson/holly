@@ -5,6 +5,7 @@ use std::{
     time::Duration,
 };
 
+use log::warn;
 use serde::{Deserialize, Serialize};
 use thirtyfour::prelude::*;
 
@@ -108,6 +109,9 @@ impl ChatMessage {
             tries += 1;
             tokio::time::sleep(std::time::Duration::from_secs(1)).await
         };
+        if messages.is_empty() {
+            warn!("Collected no messages!");
+        }
 
         let mut res = Vec::new();
         for message in messages {
@@ -124,7 +128,8 @@ impl ChatMessage {
                     .wait(Duration::from_millis(15), Duration::from_millis(5))
                     .first().await {
                         Ok(c) => c.attr("alt").await?.unwrap(),
-                        Err(_) => {
+                        Err(e) => {
+                            warn!("Unable to get sender from the image alt: {e:?}");
                             continue;
                         },
                     };
@@ -136,7 +141,8 @@ impl ChatMessage {
                         chat_id: chat_id.clone(),
                     });
                 }
-                Err(_) => {
+                Err(e) => {
+                    warn!("Unable to get message from the element! {e:?}");
                     continue;
                 }
             };
