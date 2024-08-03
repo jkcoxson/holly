@@ -117,7 +117,7 @@ impl ChatMessage {
         for message in messages {
             match message
                 .query(By::XPath(
-                    ".//div[@class='html-div xe8uvvx xexx8yu x4uap5 x18d9i69 xkhd6sd x1gslohp x11i5rnm x12nagc x1mh8g0r x1yc453h x126k92a x18lvrbx']",
+                    ".//div[@class='html-div xexx8yu x4uap5 x18d9i69 xkhd6sd x1gslohp x11i5rnm x12nagc x1mh8g0r x1yc453h x126k92a x18lvrbx']",
                 ))
                 .wait(Duration::from_millis(15), Duration::from_millis(5))
                 .first()
