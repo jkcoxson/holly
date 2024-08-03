@@ -5,7 +5,7 @@ use std::{
     time::Duration,
 };
 
-use log::warn;
+use log::{debug, warn};
 use serde::{Deserialize, Serialize};
 use thirtyfour::prelude::*;
 
@@ -142,7 +142,7 @@ impl ChatMessage {
                     });
                 }
                 Err(e) => {
-                    warn!("Unable to get message from the element! {e:?}");
+                    debug!("Unable to get message from the element! {e:?}");
                     continue;
                 }
             };
