@@ -53,10 +53,12 @@ class ParsedHollyMessage:
         return self.__str__()
 
     def match(self, test: Union[str, list[str]], lower=True):
-        """Checks if the message content matches a test string or list of strings.
+        """Checks if the message content matches a test string
+        or list of strings.
 
         Args:
-            test: String or list of strings to match against the message content.
+            test: String or list of strings to match
+            against the message content.
             lower (bool): If True, performs case-insensitive matching.
 
         Returns:
@@ -75,14 +77,18 @@ class ParsedHollyMessage:
         return c == test
 
     def loose_match(self, test: Union[str, list[str]], lower=True) -> bool:
-        """Checks if the input string or list of strings appears anywhere in the message.
+        """Checks if the input string or list of strings appears
+        anywhere in the message.
 
         Args:
-            test (Union[str, List[str]]): The string or list of strings to search for.
-            lower (bool): If True, performs case-insensitive matching. Default is False.
+            test (Union[str, List[str]]): The string or list of strings to
+            search for.
+            lower (bool): If True, performs case-insensitive matching.
+            Default is False.
 
         Returns:
-            bool: True if the input appears anywhere in the message, False otherwise.
+            bool: True if the input appears anywhere in the message,
+            False otherwise.
         """
         content = self.content
         if lower:
@@ -166,7 +172,8 @@ class HollyParser:
 
 
 class HollyMessage:
-    """Represents a message for communication between HollyClient and HollyServer.
+    """Represents a message for communication between HollyClient and
+    HollyServer.
 
     Attributes:
         content: The content of the message.
@@ -174,7 +181,7 @@ class HollyMessage:
         sender: Sender of the message.
     """
 
-    def __init__(self, content=None, chat_id=None, sender="", json_data=None):
+    def __init__(self, content: str = None, chat_id=None, sender="", json_data=None):
         if json_data:
             self.content = json_data["content"]
             self.chat_id = json_data["chat_id"]
