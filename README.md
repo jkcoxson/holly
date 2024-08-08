@@ -15,6 +15,7 @@ This will only start a bot capable of responding to/sending messages, but will d
 
 Connect to the TCP socket defined in the `config.toml`.
 Holly will send messages to all clients in the form of JSON, that looks like this:
+
 ```json
 {
     "sender": "username",
@@ -22,7 +23,9 @@ Holly will send messages to all clients in the form of JSON, that looks like thi
     "chat_id": "1234567890"
 }
 ```
+
 You can respond with an identical JSON:
+
 ```json
 {
     "sender": "", // can be left blank, but must be included for parsing
@@ -31,12 +34,14 @@ You can respond with an identical JSON:
 }
 ```
 
-Holly also supports commands by TCP for logging and control. 
+Holly also supports commands by TCP for logging and control.
 In the `sender` field, you can send the following values:
+
 - `"<screenshot>"`: Takes a screenshot and saves it to `log/<timestamp>.png`
 - `"<html>"`: Dumps the current HTML on the page
 - `"<restart>"`: Restarts the bot
 - `"<refresh>"`: Refreshes the page
+- `"<file>"`: Sends a file into a chat, with the file path defined by `content`
 
 ### Example
 
@@ -49,10 +54,12 @@ In the `sender` field, you can send the following values:
 ```
 
 ## Library
-For your convenience, there is a simple library that abstracts the boilerplate code for writing code for Holly.
+
+For your convenience, there is a simple library that abstracts the
+boilerplate code for writing code for Holly.
 You can view the library at `holly.py` and place it in your PYTHONPATH.
 
-### Example
+### Python Example
 
 ```python
 import holly
@@ -69,7 +76,9 @@ def main():
                 raw_msg = client.recv()
                 msg = raw_msg.parse(parser)
                 if msg.match("ping"):
-                    client.send(holly.HollyMessage(content="pong", chat_id=raw_msg.chat_id, sender=''))
+                    client.send(holly.HollyMessage(
+                      content="pong", chat_id=raw_msg.chat_id, sender=''
+                    ))
 
         except holly.HollyError as e:
             print(f"Error: {e}")
@@ -82,4 +91,5 @@ if __name__ == "__main__":
 ```
 
 ## Examples
+
 You can find more examples in the `children` folder, which are all written using the library.
