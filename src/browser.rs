@@ -5,6 +5,7 @@ use std::process::Stdio;
 use log::{error, info, warn};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use serde_json::{Number, Value};
 use thirtyfour::prelude::*;
 use tokio::process::{Child, Command};
 
@@ -277,6 +278,88 @@ impl Browser {
             ))
             .await;
         }
+        chat_bar.send_keys(Key::Enter + "").await?;
+
+        if let Ok(send_button) = self
+            .driver
+            .find(By::XPath("//div[@aria-label='Press enter to send']"))
+            .await
+        {
+            let _ = send_button.click().await;
+        }
+
+        Ok(())
+    }
+
+    pub async fn send_file(&self, path: &str) -> WebDriverResult<()> {
+        self.decline_call().await.unwrap();
+
+        let chat_bar = match self
+            .driver
+            .query(By::XPath("//div[@role='textbox']"))
+            .wait(
+                std::time::Duration::from_secs(5),
+                std::time::Duration::from_millis(100),
+            )
+            .first()
+            .await
+        {
+            Ok(c) => c,
+            Err(_) => {
+                warn!("Unable to get sender box by textbox role");
+                self.driver
+                    .find(By::XPath("//div[@aria-label='Message']"))
+                    .await?
+            }
+        };
+        chat_bar.click().await?;
+
+        let ret = self
+            .driver
+            .execute(
+                include_str!("drop.js"),
+                vec![
+                    chat_bar.to_json()?,
+                    Value::Number(Number::from(0)),
+                    Value::Number(Number::from(0)),
+                ],
+            )
+            .await?
+            .element()?;
+
+        ret.send_keys(path).await?;
+
+        // Detect an invalid file format
+        if let Ok(dialogue) = self
+            .driver
+            .find(By::XPath("//div[@aria-label='Invalid file format']"))
+            .await
+        {
+            warn!("File upload failed: invalid file format!");
+            // Close the box
+            dialogue
+                .find(By::XPath("//div[@aria-label='Close']"))
+                .await?
+                .click()
+                .await?;
+        }
+
+        // Detect a file upload
+        if let Ok(dialogue) = self
+            .driver
+            .find(By::XPath("//div[@aria-label='Failed to upload files']"))
+            .await
+        {
+            warn!("File upload failed! (Is the file below 25 MB?)");
+            // Close the box
+            dialogue
+                .find(By::XPath("//div[@aria-label='Close']"))
+                .await?
+                .click()
+                .await?;
+        }
+
+        chat_bar.click().await?;
         chat_bar.send_keys(Key::Enter + "").await?;
 
         if let Ok(send_button) = self

@@ -214,6 +214,26 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                     client.refresh().await?;
                     continue;
                 }
+                "<file>" => {
+                    info!("Sending file!");
+                    if let Err(e) = client.go_to_chat(&msg.chat_id).await {
+                        error!("Unable to go to chat for file send: {:?}", e);
+                        error_count += 1;
+                        if error_count > 10 {
+                            return Err(e);
+                        }
+                        continue;
+                    }
+                    if let Err(e) = client.send_file(&msg.content).await {
+                        error!("Unable to send file: {:?}", e);
+                        error_count += 1;
+                        if error_count > 10 {
+                            return Err(e);
+                        }
+                        continue;
+                    }
+                    continue;
+                }
                 _ => {
                     info!("Sending message: {:?}", msg);
                     if let Err(e) = client.go_to_chat(&msg.chat_id).await {
