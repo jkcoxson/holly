@@ -133,7 +133,24 @@ impl ChatMessage {
                             continue;
                         },
                     };
-                    let content = c.text().await?;
+                    let mut content = c.text().await?;
+
+                    if content.is_empty() {
+                        // Check for an emoji message 
+                        match c.query(By::XPath(".//img[@class='xz74otr']")).first().await {
+                            Ok(o) => {
+                                if let Ok(Some(attr)) = o.attr("alt").await {
+                                    content = attr;
+                                } else {
+                                    debug!("Emoji object has no attribute");
+                                }
+                            }
+                            Err(e) => {
+                                debug!("No emoji object on message: {e:?}");
+                            }
+                        }
+
+                    }
 
                     res.push(Self {
                         sender,
@@ -143,6 +160,34 @@ impl ChatMessage {
                 }
                 Err(e) => {
                     debug!("Unable to get message from the element! {e:?}");
+
+                        match message.query(By::XPath(".//img[@class='xz74otr']")).first().await {
+                            Ok(o) => {
+                                if let Ok(Some(attr)) = o.attr("alt").await {
+                                    let content = attr;
+                    let sender = match message.query(By::XPath(".//img[@class='x1rg5ohu x5yr21d xl1xv1r xh8yej3']"))
+                    .wait(Duration::from_millis(15), Duration::from_millis(5))
+                    .first().await {
+                        Ok(c) => c.attr("alt").await?.unwrap(),
+                        Err(e) => {
+                            warn!("Unable to get sender from the image alt: {e:?}");
+                            continue;
+                        },
+                    };
+                    res.push(Self {
+                        sender,
+                        content,
+                        chat_id: chat_id.clone(),
+                    });
+                                } else {
+                                    debug!("Emoji object has no attribute");
+                                }
+                            }
+                            Err(e) => {
+                                debug!("No emoji object on message: {e:?}");
+                            }
+                        }
+
                     continue;
                 }
             };
