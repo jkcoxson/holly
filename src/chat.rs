@@ -137,7 +137,7 @@ impl ChatMessage {
                             // there will be no sender detected in the HTML.
                             // Store the messages in the homeless camp until we get one.
                             homeless.push(content);
-                            warn!("Unable to get sender from the image alt: {e:?}");
+                            debug!("Unable to get sender from the image alt: {e:?}");
                             continue;
                         },
                     };
@@ -169,7 +169,7 @@ impl ChatMessage {
                                     .first().await {
                                         Ok(c) => c.attr("alt").await?.unwrap(),
                                         Err(e) => {
-                                            warn!("Unable to get sender from the image alt: {e:?}");
+                                            debug!("Unable to get sender from the image alt: {e:?}");
                                             continue;
                                         },
                                     };
