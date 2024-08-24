@@ -46,7 +46,11 @@ impl Cache {
             return None;
         }
 
-        debug!("{:#?}\n{:#?}", new_messages, old_messages);
+        let debug_lines = new_messages.iter().zip(old_messages.iter());
+        debug!("New Messages | Old Messages");
+        for (n, o) in debug_lines {
+            debug!("{:?} | {:?}", n.content, o.content);
+        }
 
         if new_messages == old_messages {
             return None;
