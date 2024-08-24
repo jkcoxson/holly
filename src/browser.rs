@@ -97,7 +97,7 @@ impl Browser {
         self.driver.get_named_cookie("xs").await.is_ok()
             && self
                 .driver
-                .find(By::XPath("//h1[text()=\"Chats\"]"))
+                .find(By::XPath("//a[@aria-label=\"New message\"]"))
                 .await
                 .is_ok()
     }
