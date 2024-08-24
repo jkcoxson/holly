@@ -61,14 +61,12 @@ impl Cache {
         loop {
             if old_messages[old_count] == new_messages[new_count] {
                 new_count += 1;
-            } else {
-                new_count = 0;
             }
             old_count += 1;
 
             if old_count == old_messages.len() {
                 self.inner.insert(chat_id.to_owned(), new_messages.clone());
-                if new_count > 1 {
+                if new_count > 3 {
                     return Some(new_messages[new_count..].to_vec());
                 } else {
                     warn!("New messages had no match on old messages");
