@@ -1,16 +1,19 @@
 // Jackson Coxson
 
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use chat::ChatMessage;
-use log::{error, info, warn};
+use log::{debug, error, info, warn};
 use thirtyfour::error::WebDriverResult;
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     sync::Mutex,
 };
 
+use crate::cache::Cache;
+
 mod browser;
+mod cache;
 mod chat;
 mod config;
 
@@ -110,22 +113,11 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         }
     });
 
-    let mut last_messages = HashMap::new();
+    let mut cache = Cache::new();
     let current_chat = client.get_current_chat().await.unwrap();
-    last_messages.insert(
-        current_chat,
-        client
-            .get_messages(true)
-            .await
-            .unwrap()
-            .last()
-            .unwrap_or(&ChatMessage {
-                sender: "".to_string(),
-                content: "".to_string(),
-                chat_id: "".to_string(),
-            })
-            .to_owned(),
-    );
+    cache
+        .check(&current_chat, &client.get_messages(false).await.unwrap())
+        .await;
 
     let mut error_count: u8 = 0;
 
@@ -139,15 +131,8 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         }
 
         // See if the current chat has different messages than before
-        let current_message = match client.get_messages(true).await {
-            Ok(c) => c
-                .last()
-                .unwrap_or(&ChatMessage {
-                    sender: "".to_string(),
-                    content: "".to_string(),
-                    chat_id: "".to_string(),
-                })
-                .to_owned(),
+        let current_message = match client.get_messages(false).await {
+            Ok(c) => c,
             Err(e) => {
                 error!("Unable to get messages: {:?}", e);
                 error_count += 1;
@@ -170,18 +155,17 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
             }
         };
 
-        let last_message = last_messages.insert(current_chat.clone(), current_message.clone());
-
-        if let Some(last_message) = last_message {
-            if last_message != current_message {
-                info!("{}: {}", current_chat, current_message.content);
-                // Send to all clients
-                let blocking_message = current_message.clone();
+        if let Some(unread_messages) = cache.check(&current_chat, &current_message).await {
+            for message in unread_messages {
+                info!(
+                    "{} in {}: {}",
+                    message.sender, current_chat, message.content
+                );
                 let blocking_senders = senders.clone();
                 tokio::task::spawn_blocking(move || {
                     blocking_senders
                         .blocking_lock()
-                        .retain(|sender| sender.blocking_send(blocking_message.clone()).is_ok());
+                        .retain(|sender| sender.blocking_send(message.clone()).is_ok());
                 });
             }
         }
@@ -269,6 +253,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                 continue;
             }
         };
+        debug!("Unread chats: {chats:?}");
         chats.retain(|chat| chat.unread);
         if !chats.is_empty() {
             if chats[0].click().await.is_err() {
@@ -282,15 +267,6 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                 }
                 continue;
             }
-
-            // If this is the first time we've accessed this, fill with nonsense
-            last_messages
-                .entry(chats[0].id.clone())
-                .or_insert_with(|| ChatMessage {
-                    content: "nonsense".to_string(),
-                    chat_id: chats[0].id.clone(),
-                    sender: "asdf".to_string(),
-                });
 
             tokio::time::sleep(std::time::Duration::from_secs(3)).await;
             continue;

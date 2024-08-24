@@ -11,7 +11,6 @@ use thirtyfour::prelude::*;
 
 /// A chat found on the sidebar.
 /// Includes whether or not the chat is unread.
-#[derive(Debug)]
 pub struct ChatOption {
     pub id: String,
     pub element: WebElement,
@@ -97,6 +96,7 @@ impl ChatMessage {
         // Get all the messages in the chat container
         let mut tries = 0;
         let messages = loop {
+            debug!("Getting chat messages from container");
             let messages = chat_container
                 .find_all(By::XPath(".//div[@class='x78zum5 xdt5ytf']"))
                 .await?;
@@ -106,6 +106,7 @@ impl ChatMessage {
                 }
                 break messages;
             }
+            debug!("Failed to get at least 13 chat messages, trying again...");
             tries += 1;
             tokio::time::sleep(std::time::Duration::from_secs(1)).await
         };
@@ -114,6 +115,7 @@ impl ChatMessage {
         }
 
         let mut res = Vec::new();
+        let mut homeless = Vec::new();
         for message in messages {
             match message
                 .query(By::XPath(
@@ -124,32 +126,29 @@ impl ChatMessage {
                 .await
             {
                 Ok(c) => {
+                    let content = c.text().await?;
+                    
                     let sender = match message.query(By::XPath(".//img[@class='x1rg5ohu x5yr21d xl1xv1r xh8yej3']"))
                     .wait(Duration::from_millis(15), Duration::from_millis(5))
                     .first().await {
                         Ok(c) => c.attr("alt").await?.unwrap(),
                         Err(e) => {
+                            // If the same user sends a message twice in a row,
+                            // there will be no sender detected in the HTML.
+                            // Store the messages in the homeless camp until we get one.
+                            homeless.push(content);
                             warn!("Unable to get sender from the image alt: {e:?}");
                             continue;
                         },
                     };
-                    let mut content = c.text().await?;
 
-                    if content.is_empty() {
-                        // Check for an emoji message 
-                        match c.query(By::XPath(".//img[@class='xz74otr']")).first().await {
-                            Ok(o) => {
-                                if let Ok(Some(attr)) = o.attr("alt").await {
-                                    content = attr;
-                                } else {
-                                    debug!("Emoji object has no attribute");
-                                }
-                            }
-                            Err(e) => {
-                                debug!("No emoji object on message: {e:?}");
-                            }
-                        }
-
+                    // We have a sender for the homeless messages
+                    for h in homeless.drain(..) {
+                        res.push(Self {
+                            sender: sender.clone(),
+                            content: h,
+                            chat_id: chat_id.clone()
+                        })
                     }
 
                     res.push(Self {
@@ -161,24 +160,24 @@ impl ChatMessage {
                 Err(e) => {
                     debug!("Unable to get message from the element! {e:?}");
 
-                        match message.query(By::XPath(".//img[@class='xz74otr']")).first().await {
+                        match message.query(By::XPath(".//img[@class='xz74otr']")).wait(Duration::from_millis(15), Duration::from_millis(5)).first().await {
                             Ok(o) => {
                                 if let Ok(Some(attr)) = o.attr("alt").await {
                                     let content = attr;
-                    let sender = match message.query(By::XPath(".//img[@class='x1rg5ohu x5yr21d xl1xv1r xh8yej3']"))
-                    .wait(Duration::from_millis(15), Duration::from_millis(5))
-                    .first().await {
-                        Ok(c) => c.attr("alt").await?.unwrap(),
-                        Err(e) => {
-                            warn!("Unable to get sender from the image alt: {e:?}");
-                            continue;
-                        },
-                    };
-                    res.push(Self {
-                        sender,
-                        content,
-                        chat_id: chat_id.clone(),
-                    });
+                                    let sender = match message.query(By::XPath(".//img[@class='x1rg5ohu x5yr21d xl1xv1r xh8yej3']"))
+                                    .wait(Duration::from_millis(15), Duration::from_millis(5))
+                                    .first().await {
+                                        Ok(c) => c.attr("alt").await?.unwrap(),
+                                        Err(e) => {
+                                            warn!("Unable to get sender from the image alt: {e:?}");
+                                            continue;
+                                        },
+                                    };
+                                    res.push(Self {
+                                        sender,
+                                        content,
+                                        chat_id: chat_id.clone(),
+                                    });
                                 } else {
                                     debug!("Emoji object has no attribute");
                                 }
@@ -202,6 +201,15 @@ impl ChatMessage {
     }
 }
 
+impl Debug for ChatOption {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Chat")
+            .field("id", &self.id)
+            .field("unread", &self.unread)
+            .finish()
+    }
+}
+
 impl Debug for ChatMessage {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let msg_chars = &self.content.chars().collect::<Vec<char>>();
@@ -213,7 +221,7 @@ impl Debug for ChatMessage {
         f.debug_struct("Msg")
             .field("sdr", &self.sender)
             .field("msg", &msg)
-            .field("id", &self.chat_id)
+            .field("chat_id", &self.chat_id)
             .finish()
     }
 }
