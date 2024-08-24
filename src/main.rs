@@ -68,6 +68,10 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                                 if stream.write(msg.as_bytes()).await.is_err() {
                                     break;
                                 }
+                                if stream.flush().await.is_err() {
+                                    warn!("Unable to flush message to client");
+                                    break;
+                                }
                             }
                             x = stream.read(&mut buf) => {
                                 if let Ok(x) = x {
