@@ -219,7 +219,12 @@ impl Browser {
     /// Gets the ID of the current chat
     pub async fn get_current_chat(&self) -> WebDriverResult<String> {
         let current_url = self.driver.current_url().await?;
-        let id = current_url.path().split('/').last().unwrap();
+        let id = current_url
+            .path()
+            .split('/')
+            .filter(|x| !x.is_empty())
+            .last()
+            .unwrap();
         Ok(id.to_string())
     }
 
