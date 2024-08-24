@@ -4,6 +4,7 @@ Authored by Jackson Coxson
 """
 
 import json
+import jsonstream
 import socket
 import re
 from typing import Union
@@ -260,6 +261,7 @@ class HollyClient:
         """
         self.host = host
         self.port = port
+        self.cache: list[HollyMessage] = []
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((host, port))
@@ -277,10 +279,18 @@ class HollyClient:
         Raises:
             HollyError: If there's an issue receiving the message.
         """
+        if len(self.cache) > 0:
+            msg = self.cache.pop(0)
+            return HollyMessage(json_data=msg)
         try:
             data = self.socket.recv(2048)
-            json_data = json.loads(data.decode('utf-8'))
-            return HollyMessage(json_data=json_data)
+            it = jsonstream.loads(data.decode('utf-8'))
+            msg = next(it)
+            if msg:
+                self.cache.extend(list(it))
+                return HollyMessage(json_data=msg)
+            else:
+                raise HollyError('No valid JSON recieved from network.')
         except json.JSONDecodeError as e:
             raise HollyError('Failed to decode received message.') from e
         except Exception as e:
