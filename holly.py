@@ -138,7 +138,9 @@ class HollyParser:
             junk_list = DEFAULT_JUNK
         self.junk_list = junk_list
         if remove_punctuation:
-            self.remove_punctuation = re.compile(r'[^a-zA-Z0-9\s]')
+            self.remove_punctuation = re.compile(
+                r'[^a-zA-Z0-9\u263a-\U0001f645\s]'
+            )
         self.name = name
         self.mention_name = mention_name
 
