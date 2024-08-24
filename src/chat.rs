@@ -169,10 +169,18 @@ impl ChatMessage {
                                     .first().await {
                                         Ok(c) => c.attr("alt").await?.unwrap(),
                                         Err(e) => {
+                                            homeless.push(content);
                                             debug!("Unable to get sender from the image alt: {e:?}");
                                             continue;
                                         },
                                     };
+                                    for h in homeless.drain(..) {
+                                        res.push(Self {
+                                            sender: sender.clone(),
+                                            content: h,
+                                            chat_id: chat_id.clone()
+                                        })
+                                    }
                                     res.push(Self {
                                         sender,
                                         content,
