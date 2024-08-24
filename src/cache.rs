@@ -41,6 +41,10 @@ impl Cache {
             self.inner.insert(chat_id.to_owned(), new_messages.clone());
             return None;
         }
+        if new_messages.is_empty() {
+            warn!("Comparing against empty new messages");
+            return None;
+        }
 
         debug!("{:#?}\n{:#?}", new_messages, old_messages);
 
@@ -59,9 +63,8 @@ impl Cache {
             old_count += 1;
 
             if old_count == old_messages.len() {
+                self.inner.insert(chat_id.to_owned(), new_messages.clone());
                 if new_count > 1 {
-                    // Install new cache
-                    self.inner.insert(chat_id.to_owned(), new_messages.clone());
                     return Some(new_messages[new_count..].to_vec());
                 } else {
                     warn!("New messages had no match on old messages");
