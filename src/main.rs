@@ -258,7 +258,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
             }
         };
         debug!("Unread chats: {chats:?}");
-        chats.retain(|chat| chat.unread);
+        chats.retain(|chat| chat.unread || !cache.check_key(&chat.id));
         if !chats.is_empty() {
             if chats[0].click().await.is_err() {
                 if let Err(e) = client.refresh().await {
