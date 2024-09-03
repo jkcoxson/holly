@@ -147,6 +147,23 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
             }
         };
 
+        let second_sample = match client.get_messages(false).await {
+            Ok(c) => c,
+            Err(e) => {
+                error!("Unable to get messages: {:?}", e);
+                error_count += 1;
+                if error_count > 10 {
+                    return Err(e);
+                }
+                continue;
+            }
+        };
+
+        if current_message != second_sample {
+            warn!("Message samples don't match!");
+            continue;
+        }
+
         let current_chat = match client.get_current_chat().await {
             Ok(c) => c,
             Err(e) => {
