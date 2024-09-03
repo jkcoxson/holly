@@ -83,4 +83,8 @@ impl Cache {
     pub fn check_key(&self, key: &str) -> bool {
         self.inner.contains_key(key)
     }
+
+    pub fn size(&self) -> usize {
+        self.inner.len()
+    }
 }
