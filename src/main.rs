@@ -127,7 +127,10 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
 
     info!("Startup complete");
     loop {
-        tokio::time::sleep(std::time::Duration::from_millis(config.refresh_rate as u64)).await;
+        tokio::time::sleep(std::time::Duration::from_millis(
+            config.refresh_rate as u64 / 2,
+        ))
+        .await;
 
         // Decline calls
         if let Err(e) = client.decline_call().await {
@@ -146,6 +149,11 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                 continue;
             }
         };
+
+        tokio::time::sleep(std::time::Duration::from_millis(
+            config.refresh_rate as u64 / 2,
+        ))
+        .await;
 
         let second_sample = match client.get_messages(false).await {
             Ok(c) => c,
