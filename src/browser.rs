@@ -265,21 +265,21 @@ impl Browser {
                 for asdf in "asdf".chars() {
                     chat_bar.send_keys(String::from(asdf)).await?;
                     tokio::time::sleep(std::time::Duration::from_millis(
-                        rand_gen.gen_range(10..=40),
+                        rand_gen.gen_range(10..=20),
                     ))
                     .await;
                 }
                 for _ in 0..4 {
                     chat_bar.send_keys(Key::Backspace + "").await?;
                     tokio::time::sleep(std::time::Duration::from_millis(
-                        rand_gen.gen_range(10..=40),
+                        rand_gen.gen_range(10..=20),
                     ))
                     .await;
                 }
             }
             chat_bar.send_keys(String::from(c)).await?;
             tokio::time::sleep(std::time::Duration::from_millis(
-                rand_gen.gen_range(10..=40),
+                rand_gen.gen_range(10..=20),
             ))
             .await;
         }
