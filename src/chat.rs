@@ -50,7 +50,7 @@ impl ChatOption {
                 .attr("href")
                 .await?
                 .unwrap()
-                .replace(['/', 't'], "");
+                .replace(['/', 't'], "").replace("e2ee", "");
 
             // Determine if the unread marker is there
             let unread_marker = chat
