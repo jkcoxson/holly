@@ -72,7 +72,7 @@ impl ChatOption {
     pub async fn click(&self) -> WebDriverResult<()> {
         self.element.scroll_into_view().await?;
         self.element.click().await?;
-        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         Ok(())
     }
 }

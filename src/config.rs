@@ -5,6 +5,7 @@ use serde::Deserialize;
 const DEFAULT_CONFIG: &str = r#"# Holly Config
 fb_username = "asdfasdf@urmom.com"
 fb_password = "monkey123"
+refresh_rate = 3000
 
 [gecko]
 port = 4444
@@ -21,6 +22,7 @@ host = "127.0.0.1"
 pub struct Config {
     pub fb_username: String,
     pub fb_password: String,
+    pub refresh_rate: usize,
     pub gecko: Gecko,
     pub tcp: Tcp,
 }
