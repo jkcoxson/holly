@@ -58,6 +58,8 @@ impl Cache {
 
         let mut new_count = 0;
         let mut old_count = 0;
+        let last_old_message = old_messages.last().cloned();
+        let last_new_message = new_messages.last().cloned();
         loop {
             if old_messages[old_count] == new_messages[new_count] {
                 new_count += 1;
@@ -70,6 +72,10 @@ impl Cache {
                     return Some(new_messages[new_count..].to_vec());
                 } else {
                     warn!("New messages had no match on old messages");
+                    // We'll just return a single latest message since the caches don't match up
+                    if last_old_message != last_new_message {
+                        return Some(vec![last_new_message?]);
+                    }
                     return None;
                 }
             }
