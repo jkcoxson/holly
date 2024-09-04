@@ -158,12 +158,13 @@ impl ChatMessage {
                     });
                 }
                 Err(e) => {
+                    // Check if the message is a single emoji
                     debug!("Unable to get message from the element! {e:?}");
 
                         match message.query(By::XPath(".//img[@class='xz74otr']")).wait(Duration::from_millis(15), Duration::from_millis(5)).first().await {
                             Ok(o) => {
                                 if let Ok(Some(attr)) = o.attr("alt").await {
-                                    let content = attr;
+                                    let content = attr.chars().filter(|&c| c != '\u{fe0f}').collect();
                                     let sender = match message.query(By::XPath(".//img[@class='x1rg5ohu x5yr21d xl1xv1r xh8yej3']"))
                                     .wait(Duration::from_millis(15), Duration::from_millis(5))
                                     .first().await {
