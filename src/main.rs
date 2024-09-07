@@ -40,6 +40,9 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         client.dump_cookies().await.unwrap();
     }
     client.dump_cookies().await.unwrap();
+    if let Some(pin) = config.e2ee_pin {
+        client.enter_e2ee_pin(pin).await;
+    }
 
     let listener =
         tokio::net::TcpListener::bind(format!("{}:{}", config.tcp.host, config.tcp.port))

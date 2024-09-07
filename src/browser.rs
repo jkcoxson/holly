@@ -102,6 +102,30 @@ impl Browser {
                 .is_ok()
     }
 
+    /// Enters the dumb e2ee pin Facebook is shoving down everyones' throats
+    pub async fn enter_e2ee_pin(&self, pin: String) {
+        if let Ok(pin_input) = self
+            .driver
+            .query(By::XPath(
+                "//input[@id='mw-numeric-code-input-prevent-composer-focus-steal']",
+            ))
+            .wait(
+                std::time::Duration::from_secs(5),
+                std::time::Duration::from_millis(500),
+            )
+            .first()
+            .await
+        {
+            // enter that pin
+            info!("Entering e2ee pin");
+            if let Err(e) = pin_input.send_keys(pin).await {
+                warn!("Failed to send keys to pin input: {e:?}");
+            }
+        } else {
+            warn!("Failed to get the pin box, but a e2ee pin was supplied via config!");
+        }
+    }
+
     /// Gets all the chats on the side bar. Includes whether or not they are unread.
     pub async fn get_chats(&self) -> WebDriverResult<Vec<crate::chat::ChatOption>> {
         crate::chat::ChatOption::get_all(&self.driver).await

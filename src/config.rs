@@ -22,6 +22,7 @@ host = "127.0.0.1"
 pub struct Config {
     pub fb_username: String,
     pub fb_password: String,
+    pub e2ee_pin: Option<String>,
     pub refresh_rate: usize,
     pub gecko: Gecko,
     pub tcp: Tcp,
