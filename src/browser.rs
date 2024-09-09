@@ -31,7 +31,11 @@ impl Browser {
 
         let mut caps = DesiredCapabilities::firefox();
         caps.add_firefox_arg("--disable-infobars").unwrap();
-        caps.add_firefox_arg("start-maximized").unwrap();
+        caps.add_firefox_arg("--no-sandbox").unwrap();
+        caps.add_firefox_arg("--disable-application-cache").unwrap();
+        caps.add_firefox_arg("--disable-gpu").unwrap();
+        caps.add_firefox_arg("--disable-dev-shm-usage").unwrap();
+        caps.add_firefox_arg("--start-maximized").unwrap();
         caps.add_firefox_arg("--disable-extensions").unwrap();
         caps.add_firefox_arg("--window-size=1920,1080").unwrap();
         caps.add_firefox_arg(&format!("user-agent={USER_AGENT}"))
@@ -118,6 +122,7 @@ impl Browser {
         {
             // enter that pin
             info!("Entering e2ee pin");
+            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
             if let Err(e) = pin_input.send_keys(pin).await {
                 warn!("Failed to send keys to pin input: {e:?}");
             }
