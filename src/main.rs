@@ -260,6 +260,8 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
                         }
                         continue;
                     }
+                    tokio::time::sleep(std::time::Duration::from_millis(config.latency as u64))
+                        .await;
                     if let Err(e) = client.send_message(&msg.content).await {
                         error!("Unable to send message: {:?}", e);
                         error_count += 1;
