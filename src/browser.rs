@@ -119,7 +119,7 @@ impl Browser {
                 "//input[@id='mw-numeric-code-input-prevent-composer-focus-steal']",
             ))
             .wait(
-                std::time::Duration::from_secs(5),
+                std::time::Duration::from_secs(20),
                 std::time::Duration::from_millis(500),
             )
             .first()
