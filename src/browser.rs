@@ -473,5 +473,5 @@ fn launch_driver(path: &str, port: u16) -> Child {
         .stderr(Stdio::null())
         .stdin(Stdio::null())
         .spawn()
-        .unwrap()
+        .expect("Unable to spawn geckodriver! Check that the path is correct!")
 }
