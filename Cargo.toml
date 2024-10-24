@@ -16,3 +16,5 @@ rand = { version = "*" }
 chrono = { version = "*" }
 env_logger = { version = "*" }
 unidecode = { version = "0.3.0" }
+dialoguer = { version = "0.11.0" }
+atty = { version = "0.2" }
