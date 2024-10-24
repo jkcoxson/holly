@@ -10,7 +10,7 @@ import re
 from typing import Union
 import itertools
 
-DEFAULT_JUNK = ['a', 'an', 'are', 'as', 'is', 'the']
+DEFAULT_JUNK = ["a", "an", "are", "as", "is", "the"]
 
 
 class HollyError(Exception):
@@ -20,7 +20,7 @@ class HollyError(Exception):
         message -- explanation of the error
     """
 
-    def __init__(self, message='Holly Error'):
+    def __init__(self, message="Holly Error"):
         """
         Initializes the HollyError instance.
 
@@ -48,7 +48,7 @@ class ParsedHollyMessage:
         self.target = targeted
 
     def __str__(self) -> str:
-        return f'ParsedHollyMessage: {self.content}, {self.chat_id}, {self.sender}, {self.target}'
+        return f"ParsedHollyMessage: {self.content}, {self.chat_id}, {self.sender}, {self.target}"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -102,10 +102,7 @@ class ParsedHollyMessage:
             return False
 
         for i in range(len(content) - len(test) + 1):
-            if all(
-                content[i + j].lower() == test[j].lower()
-                for j in range(len(test))
-            ):
+            if all(content[i + j].lower() == test[j].lower() for j in range(len(test))):
                 return True
         return False
 
@@ -132,16 +129,14 @@ class HollyParser:
         self,
         junk_list=None,
         remove_punctuation=True,
-        name='Holly',
-        mention_name='Holly Coxson',
+        name="Holly",
+        mention_name="Holly Coxson",
     ):
         if junk_list is None:
             junk_list = DEFAULT_JUNK
         self.junk_list = junk_list
         if remove_punctuation:
-            self.remove_punctuation = re.compile(
-                r'[^a-zA-Z0-9\u263a-\U0001f645\s]'
-            )
+            self.remove_punctuation = re.compile(r"[^a-zA-Z0-9\u263a-\U0001f645\s]")
         self.name = name
         self.mention_name = mention_name
 
@@ -160,19 +155,20 @@ class HollyParser:
         if content.lower().startswith(self.name.lower()):
             targeted = True
             content = content[len(self.name) :].strip()
-        if '@' + self.mention_name in content:
+        if "@" + self.mention_name in content:
             targeted = True
-            content = content.replace('@' + self.mention_name, '').strip()
+            content = content.replace("@" + self.mention_name, "").strip()
 
-        if self.remove_punctuation:
-            content = content.replace("'s", '')
-            content = self.remove_punctuation.sub('', content)
+        try:
+            if self.remove_punctuation:
+                content = content.replace("'s", "")
+                content = self.remove_punctuation.sub("", content)
+        except AttributeError:
+            pass
 
         split_content = content.split()
         split_content = list(
-            itertools.filterfalse(
-                lambda x: x.lower() in self.junk_list, split_content
-            )
+            itertools.filterfalse(lambda x: x.lower() in self.junk_list, split_content)
         )
 
         return ParsedHollyMessage(split_content, chat_id, sender, targeted)
@@ -192,13 +188,13 @@ class HollyMessage:
         self,
         content: str = None,
         chat_id=None,
-        sender='',
+        sender="",
         json_data=None,
     ):
         if json_data:
-            self.content = json_data['content']
-            self.chat_id = json_data['chat_id']
-            self.sender = json_data['sender']
+            self.content = json_data["content"]
+            self.chat_id = json_data["chat_id"]
+            self.sender = json_data["sender"]
         else:
             self.content = content
             self.chat_id = chat_id
@@ -217,9 +213,9 @@ class HollyMessage:
             dict: A dictionary representation of the message.
         """
         return {
-            'content': self.content,
-            'chat_id': self.chat_id,
-            'sender': self.sender,
+            "content": self.content,
+            "chat_id": self.chat_id,
+            "sender": self.sender,
         }
 
     def serialize(self):
@@ -228,7 +224,7 @@ class HollyMessage:
         Returns:
             bytes: The serialized message in JSON format encoded in UTF-8.
         """
-        return json.dumps(self.to_dict()).encode('utf-8')
+        return json.dumps(self.to_dict()).encode("utf-8")
 
     def parse(self, parser: HollyParser) -> ParsedHollyMessage:
         """Parses the message with the given HollyParser
@@ -248,7 +244,7 @@ class HollyClient:
         socket: The socket object for communication.
     """
 
-    def __init__(self, host='localhost', port=8011):
+    def __init__(self, host="localhost", port=8011):
         """
         Initializes the HollyClient instance and connects to the server.
 
@@ -266,9 +262,7 @@ class HollyClient:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((host, port))
         except ConnectionRefusedError as e:
-            raise HollyError(
-                f'Connection to server at {host}:{port} refused.'
-            ) from e
+            raise HollyError(f"Connection to server at {host}:{port} refused.") from e
 
     def recv(self) -> HollyMessage:
         """Receives a message from the server.
@@ -284,17 +278,17 @@ class HollyClient:
             return HollyMessage(json_data=msg)
         try:
             data = self.socket.recv(2048)
-            it = jsonstream.loads(data.decode('utf-8'))
+            it = jsonstream.loads(data.decode("utf-8"))
             msg = next(it)
             if msg:
                 self.cache.extend(list(it))
                 return HollyMessage(json_data=msg)
             else:
-                raise HollyError('No valid JSON recieved from network.')
+                raise HollyError("No valid JSON recieved from network.")
         except json.JSONDecodeError as e:
-            raise HollyError('Failed to decode received message.') from e
+            raise HollyError("Failed to decode received message.") from e
         except Exception as e:
-            raise HollyError(f'Failed to receive message: {e}') from e
+            raise HollyError(f"Failed to receive message: {e}") from e
 
     def send(self, msg: HollyMessage):
         """Sends a message to the server.
@@ -308,7 +302,7 @@ class HollyClient:
         try:
             self.socket.send(msg.serialize())
         except Exception as e:
-            raise HollyError(f'Failed to send message: {e}') from e
+            raise HollyError(f"Failed to send message: {e}") from e
 
     def close(self):
         """Closes the connection to the server."""
@@ -316,20 +310,20 @@ class HollyClient:
 
     def screenshot(self):
         """Command Holly core to take a screenshot"""
-        self.send(HollyMessage('', '', '<screenshot>'))
+        self.send(HollyMessage("", "", "<screenshot>"))
 
     def html(self):
         """Command Holly core to dump the page HTML"""
-        self.send(HollyMessage('', '', '<html>'))
+        self.send(HollyMessage("", "", "<html>"))
 
     def restart(self):
         """Command Holly core to restart"""
-        self.send(HollyMessage('', '', '<restart>'))
+        self.send(HollyMessage("", "", "<restart>"))
 
     def refresh(self):
         """Command Holly core to refresh the page"""
-        self.send(HollyMessage('', '', '<refresh>'))
+        self.send(HollyMessage("", "", "<refresh>"))
 
     def file(self, path: str, chat_id: str):
         """Sends a file into a chat"""
-        self.send(HollyMessage(path, chat_id, '<file>'))
+        self.send(HollyMessage(path, chat_id, "<file>"))
