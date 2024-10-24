@@ -25,6 +25,7 @@ pub struct Config {
     pub fb_password: String,
     pub e2ee_pin: Option<String>,
     pub refresh_rate: usize,
+    pub latency: usize,
     pub gecko: Gecko,
     pub tcp: Tcp,
 }
@@ -85,6 +86,19 @@ impl Config {
                                     "Choose a refresh rate in miliseconds for message scanning. A higher refresh rate will mean faster message reading, but will increase CPU usage and accuracy.",
                                 )
                                 .default("3000".to_string())
+                                .interact()
+                                .unwrap();
+                            if let Ok(rate) = rate.parse::<usize>() {
+                                break rate;
+                            }
+                            println!("Enter a number...");
+                        },
+                        latency: loop {
+                            let rate: String = Input::with_theme(&ColorfulTheme::default())
+                                .with_prompt(
+                                    "Enter the latency on context changes. Holly will be quicker with a lower latency, but less accurate with poor hardware and network speed.",
+                                )
+                                .default("1000".to_string())
                                 .interact()
                                 .unwrap();
                             if let Ok(rate) = rate.parse::<usize>() {

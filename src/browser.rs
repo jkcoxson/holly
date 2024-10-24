@@ -15,6 +15,7 @@ const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 
 pub struct Browser {
     driver: WebDriver,
+    latency: usize,
     _gecko: Child,
 }
 
@@ -50,7 +51,11 @@ impl Browser {
 
         driver.goto("https://messenger.com").await.unwrap();
 
-        Ok(Self { driver, _gecko })
+        Ok(Self {
+            driver,
+            _gecko,
+            latency: config.latency,
+        })
     }
 
     /// Logs into Messenger. This will only work if we're not already logged in
@@ -144,7 +149,7 @@ impl Browser {
         let chats = self.get_chats().await?;
         match chats.iter().find(|c| c.id == id) {
             Some(chat) => {
-                chat.click().await?;
+                chat.click(self.latency).await?;
             }
             None => {
                 // Manually go

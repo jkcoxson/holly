@@ -69,10 +69,10 @@ impl ChatOption {
     }
 
     /// Clicks on the sidebar, thereby navigating to the chat
-    pub async fn click(&self) -> WebDriverResult<()> {
+    pub async fn click(&self, latency: usize) -> WebDriverResult<()> {
         self.element.scroll_into_view().await?;
         self.element.click().await?;
-        tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+        tokio::time::sleep(std::time::Duration::from_millis(latency as u64)).await;
         Ok(())
     }
 }

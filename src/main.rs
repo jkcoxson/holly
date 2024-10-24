@@ -288,7 +288,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         debug!("Unread chats: {chats:?}");
         chats.retain(|chat| chat.unread || (!cache.check_key(&chat.id) && cache.size() < 20));
         if !chats.is_empty() {
-            if chats[0].click().await.is_err() {
+            if chats[0].click(config.latency).await.is_err() {
                 if let Err(e) = client.refresh().await {
                     error!("Unable to refresh, aborting Holly!");
                     error_count += 1;
@@ -304,6 +304,7 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         }
 
         // Until next time *rides motorcycle away*
+        tokio::time::sleep(std::time::Duration::from_millis(config.refresh_rate as u64)).await;
     }
 }
 
