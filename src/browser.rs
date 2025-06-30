@@ -2,7 +2,7 @@
 
 use std::process::Stdio;
 
-use log::{error, info, warn};
+use log::{debug, error, info, warn};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
@@ -251,20 +251,27 @@ impl Browser {
     }
 
     /// Gets the ID of the current chat
-    pub async fn get_current_chat(&self) -> WebDriverResult<String> {
+    pub async fn get_current_chat(&self) -> WebDriverResult<Option<String>> {
         let current_url = self.driver.current_url().await?;
+        debug!("Current chat: {current_url:?}");
         let id = current_url
             .path()
             .split('/')
             .filter(|x| !x.is_empty())
-            .last()
-            .unwrap();
-        Ok(id.to_string())
+            .next_back()
+            .map(|x| x.to_string());
+        Ok(id)
     }
 
     /// Gets the list of all the messages in the current chat
     pub async fn get_messages(&self, last: bool) -> WebDriverResult<Vec<crate::chat::ChatMessage>> {
-        crate::chat::ChatMessage::get(&self.driver, self.get_current_chat().await?, last).await
+        let current_chat = self.get_current_chat().await?;
+        if let Some(c) = current_chat {
+            crate::chat::ChatMessage::get(&self.driver, c, last).await
+        } else {
+            log::error!("Unable to get current chat from driver!");
+            Ok(Vec::new())
+        }
     }
 
     /// Sends a message to the current chat

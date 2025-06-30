@@ -121,10 +121,16 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
     });
 
     let mut cache = Cache::new();
-    let current_chat = client.get_current_chat().await.unwrap();
-    cache
-        .check(&current_chat, &client.get_messages(false).await.unwrap())
-        .await;
+    match client.get_current_chat().await.unwrap() {
+        Some(c) => {
+            cache
+                .check(&c, &client.get_messages(false).await.unwrap())
+                .await;
+        }
+        None => {
+            log::error!("Failed to get current chat from driver!");
+        }
+    };
 
     let mut error_count: u8 = 0;
 
@@ -176,7 +182,11 @@ async fn entry(clear_cookies: bool) -> WebDriverResult<()> {
         }
 
         let current_chat = match client.get_current_chat().await {
-            Ok(c) => c,
+            Ok(Some(c)) => c,
+            Ok(None) => {
+                error!("Failed to get current chat from driver (no slashes). Check debug logs.");
+                continue;
+            }
             Err(e) => {
                 error!("Unable to get current chat: {:?}", e);
                 error_count += 1;
